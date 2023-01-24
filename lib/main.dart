@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 //import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:newapp/pages/gpt3.dart';
+import 'package:newapp/pages/tts_player.dart';
 import 'package:newapp/provider/social_sign_in_provider.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:path_provider/path_provider.dart';
@@ -96,6 +97,10 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (context) => SocialSignInProvider(),
           child: LoginPage(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => TTSPlayerProvider(),
+          child: Gpt3Page(),
         )
       ],
       child: MaterialApp(

@@ -56,10 +56,12 @@ dependencies:
     sdk: flutter
   flutter_neumorphic: ^3.2.0
   flutter_speech: ^2.0.0
+  flutter_tts: ^3.6.3
   flutter_widget_from_html: ^0.9.0+1
   fluttertoast: ^8.1.2
   font_awesome_flutter: ^10.3.0
   google_sign_in: ^5.4.2
+  grouped_list: ^5.1.2
   gsheets: ^0.4.2
   hive: ^2.2.3
   hive_flutter: ^1.1.0
@@ -85,7 +87,6 @@ dependencies:
   whatsapp_unilink: ^2.1.0
 
 dev_dependencies:
-  flutter_lints: ^2.0.1
   flutter_test:
     sdk: flutter
 
