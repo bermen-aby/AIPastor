@@ -1,8 +1,5 @@
-import 'dart:convert';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 // ignore: avoid_classes_with_only_static_members
 class Utils {
@@ -22,7 +19,7 @@ class Utils {
         return AlertDialog(
           title: Text(
             title,
-            style: TextStyle(
+            style: const TextStyle(
               fontWeight: FontWeight.bold,
               //color: PremStyle.primary.shade900,
             ),

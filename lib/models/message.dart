@@ -1,11 +1,21 @@
+import 'package:isar/isar.dart';
+
+import 'chat_model.dart';
+
+part 'message.g.dart';
+
+@collection
 class Message {
+  Id id = Isar.autoIncrement;
   final String text;
   final DateTime date;
-  final bool isSentByMe;
+  final bool isSender;
 
-  const Message({
+  final chat = IsarLink<Chat>();
+
+  Message({
     required this.text,
     required this.date,
-    required this.isSentByMe,
+    required this.isSender,
   });
 }

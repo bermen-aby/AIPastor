@@ -5,6 +5,7 @@ class Checkpoints extends StatelessWidget {
   final List<String> checkpoints;
   final Color checkpointFilledColor;
   const Checkpoints({
+    super.key,
     this.checkedTill = 1,
     required this.checkpoints,
     required this.checkpointFilledColor,

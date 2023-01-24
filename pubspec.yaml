@@ -30,16 +30,19 @@ environment:
 # versions available, run `flutter pub outdated`. Flutter facebook auth web?
 dependencies:
   animate_do: 3.0.2
-  animated_bottom_navigation_bar: ^1.1.0
+  animated_bottom_navigation_bar: ^1.1.0+1
   animated_splash_screen: ^1.3.0
   animations: ^2.0.7
+  avatar_glow: ^2.0.2
   badges: ^2.0.3
   cached_network_image: 3.2.3
   carousel_slider: ^4.0.0-nullsafety.0
+  clipboard: ^0.1.3
   collection: 1.16.0
   connectivity_plus: ^3.0.2
   coupon_uikit: ^0.1.0
   crypto: ^3.0.2
+  dependency_validator: ^3.2.2
   dio: ^4.0.4
   firebase_auth: 4.2.3
   firebase_core: 2.4.0
@@ -47,7 +50,7 @@ dependencies:
   firebase_messaging: 14.2.0
   flutter:
     sdk: flutter
-  flutter_advanced_drawer: ^1.3.2
+  flutter_advanced_drawer: ^1.3.3
   flutter_chatgpt_api: ^1.1.0
   flutter_facebook_auth: ^5.0.6
   flutter_launcher_icons: ^0.11.0
@@ -60,26 +63,28 @@ dependencies:
   flutter_widget_from_html: ^0.9.0+1
   fluttertoast: ^8.1.2
   font_awesome_flutter: ^10.3.0
+  google_fonts: ^3.0.1
   google_sign_in: ^5.4.2
   grouped_list: ^5.1.2
   gsheets: ^0.4.2
-  hive: ^2.2.3
-  hive_flutter: ^1.1.0
   http: ^0.13.5
   image_picker: ^0.8.6
   internet_connection_checker: ^1.0.0+1
   intl: 0.17.0
+  isar: ^3.0.5
+  isar_flutter_libs: ^3.0.5
   lint: ^2.0.1
-  lottie: ^2.1.0
+  lottie: ^2.2.0
   new_version: ^0.3.1
   overlay_support: ^2.1.0
   path_provider: ^2.0.11
   provider: ^6.0.5
   rate_my_app: ^1.1.3
   scrollable_positioned_list: ^0.3.5
-  shared_preferences: ^2.0.15
+  shared_preferences: ^2.0.16
   sign_in_with_apple: ^4.3.0
   social_share: ^2.3.1
+  speech_to_text: ^6.1.1
   stop_watch_timer: ^2.0.0
   store_redirect: ^2.0.1
   the_apple_sign_in: ^1.1.1
@@ -87,8 +92,27 @@ dependencies:
   whatsapp_unilink: ^2.1.0
 
 dev_dependencies:
+  build_runner: ^2.1.5
   flutter_test:
     sdk: flutter
+  isar_generator: ^3.0.5
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/logo.png"
+  web:
+    generate: true
+    image_path: "assets/logo.png"
+    background_color: "#fff"
+    theme_color: "#fff"
+  windows:
+    generate: true
+    image_path: "assets/logo.png"
+    icon_size: 256 # min:48, max:256, default: 48
+  macos:
+    generate: true
+    image_path: "assets/logo.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -100,9 +124,12 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  assets:
+    - assets/images/pastor.png
+    - assets/images/logo.png
+    - assets/images/splashscreen.png
+    - assets/lottie/dots_loading.json
+    - assets/lottie/message_delivery.json
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
   # For details regarding adding assets from package dependencies, see

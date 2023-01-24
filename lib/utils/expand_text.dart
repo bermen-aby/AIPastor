@@ -3,14 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 
 class ExpandText extends StatefulWidget {
-  const ExpandText({required this.labelHeader, this.desc, this.shortDesc});
+  const ExpandText(
+      {super.key, required this.labelHeader, this.desc, this.shortDesc});
 
   final String labelHeader;
   final String? desc;
   final String? shortDesc;
 
   @override
-  _ExpandTextState createState() => _ExpandTextState();
+  State<ExpandText> createState() => _ExpandTextState();
 }
 
 class _ExpandTextState extends State<ExpandText> {

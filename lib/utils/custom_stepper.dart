@@ -19,7 +19,7 @@ class CustomStepper extends StatefulWidget {
   final ValueChanged<dynamic> onChanged;
 
   @override
-  _CustomStepperState createState() => _CustomStepperState();
+  State<CustomStepper> createState() => _CustomStepperState();
 }
 
 class _CustomStepperState extends State<CustomStepper> {
