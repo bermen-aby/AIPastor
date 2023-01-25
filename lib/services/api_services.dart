@@ -4,7 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
-String apiKey = "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";
+String apiKey = "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";
 String replyModel = "text-davinci-003"; //'text-curie-001'; //
 String summaryModel = "text-curie-001";
 int maxTokens = 256;
@@ -16,7 +16,7 @@ class APIService {
   Future<String> generateReply(String prompt, {String? context}) async {
     try {
       Response response = await Dio().post(
-        'https://api.openai.com/v1/completions',
+        "https://api.openai.com/v1/completions",
         data: {
           "model": replyModel,
           "prompt":
@@ -25,7 +25,7 @@ class APIService {
         },
         options: Options(
           headers: {
-            //HttpHeaders.contentTypeHeader: "application/json",
+            HttpHeaders.contentTypeHeader: "application/json",
             HttpHeaders.authorizationHeader: "Bearer $apiKey",
           },
         ),
@@ -48,7 +48,7 @@ class APIService {
   Future<String> generateSummary(String text) async {
     try {
       Response response = await Dio().post(
-        'https://api.openai.com/v1/completions',
+        "https://api.openai.com/v1/completions",
         data: {
           "prompt": "Please summarize this text: $text",
           "temperature": 0.5,
