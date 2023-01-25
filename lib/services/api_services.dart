@@ -4,7 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
-String apiKey = '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';
+String apiKey = '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';
 String replyModel = 'text-davinci-003'; //'text-curie-001'; //
 String summaryModel = 'text-curie-001';
 int maxTokens = 256;
