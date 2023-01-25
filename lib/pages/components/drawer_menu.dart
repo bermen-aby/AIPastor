@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:newapp/constants.dart';
+import '/constants.dart';
 
 class DrawerMenu extends StatefulWidget {
   const DrawerMenu({Key? key}) : super(key: key);
@@ -86,36 +86,6 @@ class _DrawerMenuState extends State<DrawerMenu> {
               Text(title),
             ],
           )),
-    );
-  }
-
-  Widget _buildItem({
-    required String text,
-    IconData? optionsIcon,
-    bool? bold,
-    VoidCallback? onClicked,
-  }) {
-    const color = Colors.white;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 15),
-      child: ListTile(
-        //leading: Icon(icon, color: color),
-        title: Text(
-          text,
-          style: (bold == true)
-              ? const TextStyle(
-                  color: color,
-                  fontWeight: FontWeight.bold,
-                )
-              : const TextStyle(color: color),
-        ),
-        hoverColor: Colors.grey,
-        onTap: onClicked,
-        trailing: Icon(
-          optionsIcon,
-          color: color,
-        ),
-      ),
     );
   }
 }

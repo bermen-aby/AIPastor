@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:newapp/models/chat_small_model.dart';
+import 'package:intl/intl.dart';
 
 import '../../../constants.dart';
+import '../../../models/chat_details.dart';
 
 class ChatCard extends StatelessWidget {
   const ChatCard({
@@ -10,72 +11,61 @@ class ChatCard extends StatelessWidget {
     required this.press,
   }) : super(key: key);
 
-  final ChatSmall chat;
+  final ChatDetails chat;
   final VoidCallback press;
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: press,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-            horizontal: kDefaultPadding, vertical: kDefaultPadding * 0.75),
-        child: Row(
-          children: [
-            Stack(
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+              horizontal: kDefaultPadding, vertical: kDefaultPadding * 0.75),
+          child: Container(
+            height: 85,
+            //alignment: Alignment.centerLeft,
+            child: Column(
               children: [
-                // CircleAvatar(
-                //   radius: 24,
-                //   backgroundImage: AssetImage(chat.image),
-                // ),
-                if (chat.isActive)
-                  Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      height: 16,
-                      width: 16,
-                      decoration: BoxDecoration(
-                        color: kPrimaryColor,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                            color: Theme.of(context).scaffoldBackgroundColor,
-                            width: 3),
+                Row(
+                  children: [
+                    Flexible(
+                      flex: 1,
+                      child: Text(
+                        chat.title,
+                        maxLines: 3,
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ),
-                  )
-              ],
-            ),
-            Expanded(
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: kDefaultPadding),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      chat.name,
-                      style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w500),
-                    ),
-                    const SizedBox(height: 8),
-                    Opacity(
-                      opacity: 0.64,
-                      child: Text(
-                        chat.lastMessage,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                    Flexible(
+                      flex: 2,
+                      child: Opacity(
+                        opacity: 0.90,
+                        child: Text(
+                          chat.lastMessage,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ),
                   ],
                 ),
-              ),
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: Opacity(
+                    opacity: 0.64,
+                    child: chat.date.year == DateTime.now().year
+                        ? Text(DateFormat.MMMd().format(chat.date))
+                        : Text(DateFormat.yMMMd().format(chat.date)),
+                  ),
+                ),
+              ],
             ),
-            Opacity(
-              opacity: 0.64,
-              child: Text(chat.time.toString()),
-            ),
-          ],
+          ),
         ),
       ),
     );

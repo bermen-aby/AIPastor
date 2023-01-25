@@ -2,20 +2,10 @@ import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
-import 'package:isar/isar.dart';
-
-import 'package:overlay_support/overlay_support.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:provider/provider.dart';
-
-import 'models/chat_model.dart';
 import '/pages/chat_page/chat_page.dart';
 import '/provider/loader_provider.dart';
-import 'constants.dart';
-import 'variables.dart';
 import 'theme.dart';
 
 /*const AndroidNotificationChannel channel = AndroidNotificationChannel(
@@ -67,7 +57,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(
           create: (context) => LoaderProvider(),
-          child: const ChatPage(),
+          child: ChatPage(),
         ),
       ],
       child: MaterialApp(
@@ -78,12 +68,18 @@ class MyApp extends StatelessWidget {
         home: //const ChatPage(),
             AnimatedSplashScreen(
                 backgroundColor: Theme.of(context).backgroundColor,
-                splashIconSize: 512,
-                splash: Image.asset(
-                  "assets/images/splashscreen.png",
-                  height: double.infinity,
+                splashIconSize: 4000,
+                splash: Container(
+                  decoration: const BoxDecoration(
+                    image: DecorationImage(
+                      fit: BoxFit.fitHeight,
+                      image: AssetImage(
+                        "assets/images/splashscreen.png",
+                      ),
+                    ),
+                  ),
                 ),
-                nextScreen: const ChatPage()),
+                nextScreen: ChatPage()),
       ),
     );
     // return MaterialApp(

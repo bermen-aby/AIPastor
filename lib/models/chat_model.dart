@@ -1,3 +1,4 @@
+import 'package:ai_pastor/models/chat_details.dart';
 import 'package:isar/isar.dart';
 
 import 'message.dart';
@@ -7,80 +8,13 @@ part 'chat_model.g.dart';
 @collection
 class Chat {
   Id id = Isar.autoIncrement;
-  String name;
-  String lastMessage;
-  late DateTime time;
-  //String time;
-  String image;
-  final bool isActive;
-
+  String summary;
   @Backlink(to: "chat")
   final messages = IsarLinks<Message>();
+  @Backlink(to: "chat")
+  final details = IsarLink<ChatDetails>();
 
   Chat({
-    this.name = '',
-    this.lastMessage = '',
-    this.image = '',
-    this.isActive = false,
-    required DateTime time,
+    this.summary = '',
   });
 }
-
-// List chatsData = [
-//   Chat(
-//     name: "Jenny Wilson",
-//     lastMessage: "Hope you are doing well...",
-//     image: "assets/images/user.png",
-//     time: "3m ago",
-//     isActive: false,
-//   ),
-//   Chat(
-//     name: "Esther Howard",
-//     lastMessage: "Hello Abdullah! I am...",
-//     image: "assets/images/user_2.png",
-//     time: "8m ago",
-//     isActive: true,
-//   ),
-//   Chat(
-//     name: "Ralph Edwards",
-//     lastMessage: "Do you have update...",
-//     image: "assets/images/user_3.png",
-//     time: "5d ago",
-//     isActive: false,
-//   ),
-//   Chat(
-//     name: "Jacob Jones",
-//     lastMessage: "You’re welcome :)",
-//     image: "assets/images/user_4.png",
-//     time: "5d ago",
-//     isActive: true,
-//   ),
-//   Chat(
-//     name: "Albert Flores",
-//     lastMessage: "Thanks",
-//     image: "assets/images/user_5.png",
-//     time: "6d ago",
-//     isActive: false,
-//   ),
-//   Chat(
-//     name: "Jenny Wilson",
-//     lastMessage: "Hope you are doing well...",
-//     image: "assets/images/user.png",
-//     time: "3m ago",
-//     isActive: false,
-//   ),
-//   Chat(
-//     name: "Esther Howard",
-//     lastMessage: "Hello Abdullah! I am...",
-//     image: "assets/images/user_2.png",
-//     time: "8m ago",
-//     isActive: true,
-//   ),
-//   Chat(
-//     name: "Ralph Edwards",
-//     lastMessage: "Do you have update...",
-//     image: "assets/images/user_3.png",
-//     time: "5d ago",
-//     isActive: false,
-//   ),
-// ];

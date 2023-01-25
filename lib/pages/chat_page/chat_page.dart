@@ -11,10 +11,10 @@ import 'package:grouped_list/grouped_list.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:new_version/new_version.dart';
-import 'package:newapp/pages/chats_list_page/chats_list_page.dart';
-import 'package:newapp/services/isar_services.dart';
+import '/pages/chats_list_page/chats_list_page.dart';
+import '/services/isar_services.dart';
 import '../../models/chat_model.dart';
-import '../../models/chat_small_model.dart';
+import '../../models/chat_details.dart';
 import '../../variables.dart';
 import 'package:rate_my_app/rate_my_app.dart';
 
@@ -25,10 +25,10 @@ import '../../services/local_services.dart';
 import '../components/drawer_menu.dart';
 
 class ChatPage extends StatefulWidget {
-  const ChatPage({this.rateMyApp, this.chatSmall, super.key});
+  ChatPage({this.rateMyApp, this.chatDetails, super.key});
 
   final RateMyApp? rateMyApp;
-  final ChatSmall? chatSmall;
+  ChatDetails? chatDetails;
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -42,7 +42,7 @@ class _ChatPageState extends State<ChatPage> {
   final String _title = 'New Discussion';
   final APIService _apiServices = APIService();
   bool _isListening = false; // Listening to the mic
-  bool _isPlaying = false; // Playing the Message
+  //bool _isPlaying = false; // Playing the Message
   bool _apiProcess = false;
   bool _autoPlay = true; // Automatically play AI responses
   //var ttsProdider;
@@ -56,7 +56,8 @@ class _ChatPageState extends State<ChatPage> {
   bool connexion = false;
 
   final IsarServices _isarServices = IsarServices();
-  late Chat chat;
+  late Chat? chat;
+  //late ChatDetails chatDetails;
 
   @override
   void initState() {
@@ -111,11 +112,14 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   initChat() async {
-    if (widget.chatSmall != null) {
-      chat = (await _isarServices.getChat(widget.chatSmall!))!;
-      messages = await _isarServices.getChatMessages(widget.chatSmall!);
+    if (widget.chatDetails != null) {
+      chat = (await _isarServices.getChat(widget.chatDetails!))!;
+      if (chat != null) {
+        messages = await _isarServices.getChatMessages(chat!);
+        print("LOG: Chat messages lenght ${chat!.messages.length}");
+        print("LOG: Messages lenght ${messages.length}");
+      }
     } else {
-      chat = Chat(name: 'New Discussion', isActive: true, time: DateTime.now());
       messages.add(
         Message(
           text: "Hello, how can I help you?",
@@ -123,7 +127,14 @@ class _ChatPageState extends State<ChatPage> {
           isSender: false,
         ),
       );
+
+      widget.chatDetails =
+          ChatDetails(title: 'New Discussion', date: DateTime.now());
+      chat = Chat()
+        ..details.value = widget.chatDetails
+        ..messages.addAll(messages);
     }
+    setState(() {});
   }
 
   @override
@@ -307,8 +318,10 @@ class _ChatPageState extends State<ChatPage> {
                                 ),
                                 child: Row(
                                   children: [
-                                    Expanded(
+                                    Flexible(
                                       child: TextField(
+                                        maxLines: 8,
+                                        minLines: 1,
                                         enabled: !_apiProcess,
                                         controller: _promptController,
                                         decoration: const InputDecoration(
@@ -386,8 +399,8 @@ class _ChatPageState extends State<ChatPage> {
       automaticallyImplyLeading: false,
 
       title: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
+        //crossAxisAlignment: CrossAxisAlignment.center,
+        //mainAxisAlignment: MainAxisAlignment.center,
         children: [
           BounceInDown(
             child: const CircleAvatar(
@@ -395,29 +408,31 @@ class _ChatPageState extends State<ChatPage> {
               backgroundImage: AssetImage("assets/images/pastor.png"),
             ),
           ),
-          const SizedBox(width: kDefaultPadding * 0.75),
-          InkWell(
-            onTap: () {},
-            child: TextButton(
-              onPressed: () {},
-              child: FadeIn(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Pastor Jacob", // AI Pastor
-                      style: TextStyle(fontSize: 16, color: Colors.white),
-                    ),
-                    Text(
-                      _title,
-                      //"Active 3m ago",
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.white,
-                        overflow: TextOverflow.ellipsis,
+          const SizedBox(width: kDefaultPadding * 0.50),
+          Expanded(
+            child: InkWell(
+              onTap: () {},
+              child: TextButton(
+                onPressed: () {},
+                child: FadeIn(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Pastor Jacob", // AI Pastor
+                        style: TextStyle(fontSize: 16, color: Colors.white),
                       ),
-                    )
-                  ],
+                      Text(
+                        widget.chatDetails?.title ?? '',
+                        //"Active 3m ago",
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.white,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      )
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -567,7 +582,7 @@ class _ChatPageState extends State<ChatPage> {
             Fluttertoast.showToast(
               msg: "AppLocalizations.of(context)!.thanksForReview",
             );
-            Navigator.of(context).pop();
+            _popWindow();
           }
         },
         child: const Text("AppLocalizations.of(context)!.okText"),
@@ -578,7 +593,7 @@ class _ChatPageState extends State<ChatPage> {
           const event = RateMyAppEventType.laterButtonPressed;
           await widget.rateMyApp!.callEvent(event);
 
-          Navigator.of(context).pop();
+          _popWindow();
         },
         child: const Text("AppLocalizations.of(context)!.later"),
       );
@@ -587,7 +602,7 @@ class _ChatPageState extends State<ChatPage> {
         onPressed: () async {
           const event = RateMyAppEventType.noButtonPressed;
           await widget.rateMyApp!.callEvent(event);
-          Navigator.of(context).pop();
+          _popWindow();
         },
         child: const Text("AppLocalizations.of(context)!.cancel"),
       );
@@ -657,30 +672,37 @@ class _ChatPageState extends State<ChatPage> {
       _promptController.clear();
       _apiProcess = true;
     });
-    chat
-      ..time = DateTime.now()
+
+    widget.chatDetails!
+      ..date = DateTime.now()
       ..lastMessage = message.text;
-    _isarServices.saveChat(chat, messages);
-    await Future.delayed(const Duration(seconds: 30)).then(
-      (value) {
-        setState(() {
-          _apiProcess = false;
-        });
-      },
-    );
-    // _generatedText = await _apiServices
-    //     .askGP3(_promptController.text);
-    // final messageResponse = Message(
-    //     text: _generatedText,
-    //     date: DateTime.now(),
-    //     isSender: false);
-    //setState(() {
-    // messages.add(messageResponse);
-    //_apiProcess = false;
-    //});
-    // chat
-    //   ..time = DateTime.now()
-    //   ..lastMessage = _generatedText;
-    // _isarServices.saveChat(chat, messages);
+    if (messages.length == 2) {
+      widget.chatDetails!.title =
+          await _apiServices.generateTitle(message.text);
+    }
+
+    chat!.details.value = widget.chatDetails;
+    chat!.messages.add(message);
+
+    _isarServices.saveChat(chat!, message);
+    _generatedText = await _apiServices.generateReply(message.text);
+    final messageResponse =
+        Message(text: _generatedText, date: DateTime.now(), isSender: false);
+    setState(() {
+      messages.add(messageResponse);
+      _apiProcess = false;
+    });
+    widget.chatDetails!
+      ..date = DateTime.now()
+      ..lastMessage = _generatedText;
+    chat!.messages.add(messageResponse);
+    _isarServices.saveChat(chat!, messageResponse);
+    if (kDebugMode) {
+      print("New title is: ${widget.chatDetails?.title}");
+    }
+  }
+
+  _popWindow() {
+    Navigator.of(context).pop();
   }
 }

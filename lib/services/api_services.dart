@@ -1,42 +1,126 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
-import 'package:flutter_neumorphic/flutter_neumorphic.dart';
+import 'package:flutter/foundation.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
 String apiKey = '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';
-String model = 'text-davinci-003';
-//String prompt = 'The quick brown fox jumps over the lazy dog.';
-int maxTokens = 512;
+String replyModel = 'text-davinci-003'; //'text-curie-001'; //
+String summaryModel = 'text-curie-001';
+int maxTokens = 256;
 String stop = '.';
 
 class APIService {
   final _speech = SpeechToText();
 
-  askGP3(String prompt, {String? context}) async {
-    Response response = await Dio().post(
-      'https://api.openai.com/v1/completions',
-      data: {
-        'model': model,
-        'prompt': context != null
-            ? "You are Pastor Jacob, here to help with empathy. Continue this conversation, adding relevant Bible verses if possible: $context. Me: $prompt. You:"
-            : "As a christian: $prompt",
-        'max_tokens': maxTokens,
-        'temperature': 0.3,
-      },
-      options: Options(
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $apiKey',
+  Future<String> generateReply(String prompt, {String? context}) async {
+    try {
+      Response response = await Dio().post(
+        'https://api.openai.com/v1/completions',
+        data: {
+          'model': replyModel,
+          'prompt':
+              "You are Pastor Jacob. Continue the discussion by replying to this: $prompt",
+          'max_tokens': maxTokens,
         },
-      ),
-    );
-    if (response.statusCode == 200) {
-      print("LOG ${response.data}");
-      var generatedText = response.data['choices'][0]['text'];
-      print("LOG $generatedText");
-      return generatedText;
+        options: Options(
+          headers: {
+            HttpHeaders.contentTypeHeader: 'application/json',
+            HttpHeaders.authorizationHeader: 'Bearer $apiKey',
+          },
+        ),
+      );
+      if (response.statusCode == 200) {
+        var generatedText = response.data['choices'][0]['text'];
+        return removeFirstNewline(generatedText);
+      } else {
+        throw Exception(
+            "Failed to generate reply. Status code: ${response.statusCode}");
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+      return "Error generating reply: $e";
     }
+  }
 
-    return response.statusCode.toString();
+  Future<String> generateSummary(String text) async {
+    try {
+      Response response = await Dio().post(
+        'https://api.openai.com/v1/completions',
+        data: {
+          'prompt': 'Please summarize this text: $text',
+          'temperature': 0.5,
+          'max_tokens': 100,
+          'top_p': 1,
+          'stop': '\n',
+          'model': 'text-curie-001',
+        },
+        options: Options(
+          headers: {
+            HttpHeaders.contentTypeHeader: 'application/json',
+            HttpHeaders.authorizationHeader: 'Bearer $apiKey',
+          },
+        ),
+      );
+      if (response.statusCode == 200) {
+        var generatedText = response.data['choices'][0]['text'];
+        return removeEmptyLines(generatedText);
+      } else {
+        throw Exception(
+            "Failed to generate summary. Status code: ${response.statusCode}");
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+      return "Error generating Summary: $e";
+    }
+  }
+
+  Future<String> generateTitle(String text) async {
+    try {
+      Response response = await Dio().post(
+        'https://api.openai.com/v1/completions',
+        data: {
+          'prompt':
+              'in less than six words, give a title to this message: $text',
+          'temperature': 0.5,
+          'max_tokens': 20,
+          'model': 'text-curie-001',
+        },
+        options: Options(
+          headers: {
+            HttpHeaders.contentTypeHeader: 'application/json',
+            HttpHeaders.authorizationHeader: 'Bearer $apiKey',
+          },
+        ),
+      );
+      if (response.statusCode == 200) {
+        var generatedText = response.data['choices'][0]['text'];
+        return removeEmptyLines(generatedText);
+      } else {
+        throw Exception(
+            "Failed to generate summary. Status code: ${response.statusCode}");
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+      return "Error generating Summary: $e";
+    }
+  }
+
+  String removeFirstNewline(String text) {
+    if (text.startsWith('\n')) {
+      text = text.substring(1);
+    }
+    return text;
+  }
+
+  String removeEmptyLines(String text) {
+    return text.replaceAll(RegExp(r'^\s*\n', multiLine: true), '');
   }
 
   Future<bool> toggleRecording({

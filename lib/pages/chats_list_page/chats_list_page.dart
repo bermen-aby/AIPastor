@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
-import 'package:newapp/pages/chat_page/chat_page.dart';
+import '/pages/chat_page/chat_page.dart';
 
 import '../../constants.dart';
 import '../components/drawer_menu.dart';
@@ -33,10 +33,15 @@ class _ChatsListPageState extends State<ChatsListPage> {
       ),
       child: Scaffold(
         appBar: buildAppBar(),
-        body: Body(),
+        body: const Body(),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            _advancedDrawerController.showDrawer();
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ChatPage(),
+              ),
+            );
           },
           backgroundColor: kPrimaryColor,
           child: const Icon(
@@ -57,12 +62,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
         IconButton(
           icon: const Icon(Icons.settings),
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const ChatPage(),
-              ),
-            );
+            _advancedDrawerController.showDrawer();
           },
         ),
       ],
