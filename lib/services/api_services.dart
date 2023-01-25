@@ -4,11 +4,11 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
-String apiKey = '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';
-String replyModel = 'text-davinci-003'; //'text-curie-001'; //
-String summaryModel = 'text-curie-001';
+String apiKey = "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";
+String replyModel = "text-davinci-003"; //'text-curie-001'; //
+String summaryModel = "text-curie-001";
 int maxTokens = 256;
-String stop = '.';
+String stop = ".";
 
 class APIService {
   final _speech = SpeechToText();
@@ -18,15 +18,15 @@ class APIService {
       Response response = await Dio().post(
         'https://api.openai.com/v1/completions',
         data: {
-          'model': replyModel,
-          'prompt':
+          "model": replyModel,
+          "prompt":
               "You are Pastor Jacob. Continue the discussion by replying to this: $prompt",
-          'max_tokens': maxTokens,
+          "max_tokens": maxTokens,
         },
         options: Options(
           headers: {
-            HttpHeaders.contentTypeHeader: 'application/json',
-            HttpHeaders.authorizationHeader: 'Bearer $apiKey',
+            //HttpHeaders.contentTypeHeader: "application/json",
+            HttpHeaders.authorizationHeader: "Bearer $apiKey",
           },
         ),
       );
@@ -50,17 +50,17 @@ class APIService {
       Response response = await Dio().post(
         'https://api.openai.com/v1/completions',
         data: {
-          'prompt': 'Please summarize this text: $text',
-          'temperature': 0.5,
-          'max_tokens': 100,
-          'top_p': 1,
-          'stop': '\n',
-          'model': 'text-curie-001',
+          "prompt": "Please summarize this text: $text",
+          "temperature": 0.5,
+          "max_tokens": 100,
+          "top_p": 1,
+          "stop": "\n",
+          "model": "text-curie-001",
         },
         options: Options(
           headers: {
-            HttpHeaders.contentTypeHeader: 'application/json',
-            HttpHeaders.authorizationHeader: 'Bearer $apiKey',
+            HttpHeaders.contentTypeHeader: "application/json",
+            HttpHeaders.authorizationHeader: "Bearer $apiKey",
           },
         ),
       );
@@ -84,16 +84,16 @@ class APIService {
       Response response = await Dio().post(
         'https://api.openai.com/v1/completions',
         data: {
-          'prompt':
-              'in less than six words, give a title to this message: $text',
-          'temperature': 0.5,
-          'max_tokens': 20,
-          'model': 'text-curie-001',
+          "prompt":
+              "in less than six words, give a title to this message: $text",
+          "temperature": 0.5,
+          "max_tokens": 20,
+          "model": "text-curie-001",
         },
         options: Options(
           headers: {
-            HttpHeaders.contentTypeHeader: 'application/json',
-            HttpHeaders.authorizationHeader: 'Bearer $apiKey',
+            HttpHeaders.contentTypeHeader: "application/json",
+            HttpHeaders.authorizationHeader: "Bearer $apiKey",
           },
         ),
       );
