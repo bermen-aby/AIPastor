@@ -4,12 +4,14 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
-import '../secrets.dart';
+//import '../secrets.dart';
 
 String replyModel = "text-davinci-003"; //'text-curie-001'; //
 String summaryModel = "text-curie-001";
 int maxTokens = 256;
 String stop = ".";
+//Rajoute ta cle api ici
+String apiKey = "...";
 
 class APIService {
   final _speech = SpeechToText();
