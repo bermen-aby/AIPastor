@@ -67,7 +67,7 @@ class MyApp extends StatelessWidget {
         title: 'Login Page',
         home: //const ChatPage(),
             AnimatedSplashScreen(
-                backgroundColor: Theme.of(context).backgroundColor,
+                backgroundColor: Theme.of(context).colorScheme.background,
                 splashIconSize: 4000,
                 splash: Container(
                   decoration: const BoxDecoration(

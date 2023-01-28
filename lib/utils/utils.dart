@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 // ignore: avoid_classes_with_only_static_members
@@ -60,5 +59,9 @@ class Utils {
     }
 
     return str;
+  }
+
+  String removeEmptyLines(String text) {
+    return text.replaceAll(RegExp(r'^\s*\n', multiLine: true), '');
   }
 }

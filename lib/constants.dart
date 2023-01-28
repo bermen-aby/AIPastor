@@ -1,7 +1,7 @@
 import 'package:flutter/services.dart';
 
-const kPrimaryColor = Color(0xFF00BF6D);
-const kSecondaryColor = Color(0xFFFE9901);
+const kPrimaryColor = Color(0xFF095D9E);
+const kSecondaryColor = Color(0xFF9CD5F9);
 const kContentColorLightTheme = Color(0xFF1D1D35);
 const kContentColorDarkTheme = Color(0xFFF5FCF9);
 const kWarninngColor = Color(0xFFF3BB1C);

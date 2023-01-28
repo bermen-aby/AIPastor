@@ -24,6 +24,7 @@ import '../../constants.dart';
 import '../../services/local_services.dart';
 import '../components/drawer_menu.dart';
 
+// ignore: must_be_immutable
 class ChatPage extends StatefulWidget {
   ChatPage({this.rateMyApp, this.chatDetails, super.key});
 
@@ -39,16 +40,13 @@ enum TtsState { playing, stopped }
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _promptController = TextEditingController();
   String _generatedText = '';
-  final String _title = 'New Discussion';
   final APIService _apiServices = APIService();
   bool _isListening = false; // Listening to the mic
   //bool _isPlaying = false; // Playing the Message
   bool _apiProcess = false;
   bool _autoPlay = true; // Automatically play AI responses
-  //var ttsProdider;
   List<Message> messages = [];
   late FlutterTts _flutterTts;
-  //String? _tts;
   TtsState _ttsState = TtsState.stopped;
 
   final _advancedDrawerController = AdvancedDrawerController();
@@ -57,7 +55,6 @@ class _ChatPageState extends State<ChatPage> {
 
   final IsarServices _isarServices = IsarServices();
   late Chat? chat;
-  //late ChatDetails chatDetails;
 
   @override
   void initState() {
@@ -116,8 +113,10 @@ class _ChatPageState extends State<ChatPage> {
       chat = (await _isarServices.getChat(widget.chatDetails!))!;
       if (chat != null) {
         messages = await _isarServices.getChatMessages(chat!);
-        print("LOG: Chat messages lenght ${chat!.messages.length}");
-        print("LOG: Messages lenght ${messages.length}");
+        if (kDebugMode) {
+          print("LOG: Chat messages lenght ${chat!.messages.length}");
+          print("LOG: Messages lenght ${messages.length}");
+        }
       }
     } else {
       messages.add(
@@ -195,7 +194,9 @@ class _ChatPageState extends State<ChatPage> {
                             child: Padding(
                               padding: const EdgeInsets.all(8),
                               child: Text(
-                                DateFormat.yMMMd().format(message.date),
+                                DateFormat.yMMMd()
+                                    .format(message.date)
+                                    .toUpperCase(),
                                 style: const TextStyle(color: Colors.white),
                               ),
                             ),
@@ -233,7 +234,7 @@ class _ChatPageState extends State<ChatPage> {
                                       ? Colors.white
                                       : Theme.of(context)
                                           .textTheme
-                                          .bodyText1!
+                                          .bodyLarge!
                                           .color,
                                 ),
                               ),
@@ -310,15 +311,15 @@ class _ChatPageState extends State<ChatPage> {
                               child: Container(
                                 //color: Colors.grey.shade300,
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: kDefaultPadding * 0.75,
+                                  horizontal: kDefaultPadding * 0.40,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: kPrimaryColor.withOpacity(0.05),
+                                  //color: kPrimaryColor.withOpacity(0.05),
                                   borderRadius: BorderRadius.circular(40),
                                 ),
                                 child: Row(
                                   children: [
-                                    Flexible(
+                                    Expanded(
                                       child: TextField(
                                         maxLines: 8,
                                         minLines: 1,

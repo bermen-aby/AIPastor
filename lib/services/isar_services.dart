@@ -17,62 +17,43 @@ class IsarServices {
   Future<void> saveChat(Chat newChat, Message? message) async {
     final isar = await db;
 
+    final chat = await isar.chats.get(newChat.id) ?? Chat();
+    chat
+      ..summary = newChat.summary
+      ..details.value = newChat.details.value;
+    if (message != null) {
+      chat.messages.add(message);
+    }
+
     isar.writeTxn(
       () async {
-        final chat = await isar.chats.get(newChat.id) ?? Chat();
-        chat
-          ..summary = newChat.summary
-          ..details.value = newChat.details.value;
-        if (message != null) {
-          chat.messages.add(message);
-        }
-        await isar.chats.put(chat);
         if (message != null) {
           await isar.messages.put(message);
         }
+        await isar.chats.put(chat);
         await isar.chatDetails.put(newChat.details.value!);
-        await chat.messages.save();
         await chat.details.save();
+        await chat.messages.save();
       },
     );
   }
 
   Future<void> saveDetails(ChatDetails newChatDetails) async {
     final isar = await db;
+    final chatDetails =
+        await isar.chatDetails.get(newChatDetails.id) ?? newChatDetails;
+    chatDetails
+      ..date = newChatDetails.date
+      ..lastMessage = newChatDetails.lastMessage
+      ..title = newChatDetails.title;
 
     isar.writeTxn(
       () async {
-        final chatDetails =
-            await isar.chatDetails.get(newChatDetails.id) ?? newChatDetails;
-        chatDetails
-          ..date = newChatDetails.date
-          ..lastMessage = newChatDetails.lastMessage
-          ..title = newChatDetails.title;
-
         await isar.chatDetails.put(chatDetails);
         await chatDetails.chat.save();
       },
     );
   }
-
-  // Future<void> updateChat(Chat newChat, List<Message> messages) async {
-  //   final isar = await db;
-  //   final smallChat = ChatDetails(
-  //     title: newChat.title,
-  //     date: newChat.time,
-  //     lastMessage: newChat.lastMessage,
-  //     isActive: newChat.isActive,
-  //     image: newChat.image,
-  //   );
-  //   isar.writeTxn(
-  //     () async {
-  //       await isar.chats.put(newChat);
-  //       await isar.chatDetails.put(smallChat);
-  //       await isar.messages.putAll(messages);
-  //       await newChat.messages.save();
-  //     },
-  //   );
-  // }
 
   Future<Chat?> getChat(ChatDetails chat) async {
     final isar = await db;
@@ -84,10 +65,12 @@ class IsarServices {
 
   Future<List<Message>> getChatMessages(Chat chat) async {
     final isar = await db;
-    return await isar.messages
+    final messages = await isar.messages
         .filter()
         .chat((q) => q.idEqualTo(chat.id))
         .findAll();
+
+    return messages;
   }
 
   Future<List<ChatDetails?>> getAllChatSmall() async {
@@ -97,38 +80,61 @@ class IsarServices {
     return result;
   }
 
-  Future<void> removeMessage(Message message) async {
+  Future<void> removeMessage(Message toRemove) async {
     final isar = await db;
-    isar.writeTxn(
-      () async {
-        await isar.messages.delete(message.id);
-        // final chat = await isar.chats
-        //     .filter()
-        //     .messages((q) => q.idEqualTo(message.id))
-        //     .findFirst();
-        // await isar.chats.get(chat!.id).;
-      },
-    );
+    final message = await isar.messages.get(toRemove.id);
+
+    if (message != null) {
+      isar.writeTxn(
+        () async {
+          await isar.messages.delete(message.id);
+        },
+      );
+    }
   }
 
-  Future<void> removeChat(Chat chat) async {
+  Future<void> removeChat(Chat newChat) async {
     final isar = await db;
-    isar.writeTxnSync(
-      () async {
-        await isar.chats.delete(chat.id);
-        await isar.chatDetails.delete(chat.id);
-      },
-    );
+
+    final chat = await isar.chats.get(newChat.id);
+
+    if (chat != null) {
+      await chat.details.load();
+      await chat.messages.load();
+      chat.details.value = null;
+      chat.messages.clear();
+
+      isar.writeTxnSync(
+        () async {
+          await chat.details.save();
+          await chat.messages.save();
+          await isar.chats.delete(chat.id);
+        },
+      );
+    }
   }
 
-  Future<void> removeChatSmall(ChatDetails chat) async {
+  Future<void> removeChatFromDetails(ChatDetails newChatD) async {
     final isar = await db;
-    isar.writeTxnSync(
-      () async {
-        await isar.chats.delete(chat.id);
-        await isar.chatDetails.delete(chat.id);
-      },
-    );
+    final chatDetails = await isar.chatDetails.get(newChatD.id);
+    late Chat? chat;
+    if (chatDetails != null) {
+      chat = await getChat(chatDetails);
+    }
+
+    if (chatDetails != null) {
+      await chatDetails.chat.load();
+      chatDetails.chat.value = null;
+      isar.writeTxnSync(
+        () async {
+          await chatDetails.chat.save();
+          await isar.chatDetails.delete(chatDetails.id);
+        },
+      );
+      if (chat != null) {
+        removeChat(chat);
+      }
+    }
   }
 
   Future<Isar> openDB() async {

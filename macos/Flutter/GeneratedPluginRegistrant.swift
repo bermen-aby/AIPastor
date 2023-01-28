@@ -13,7 +13,7 @@ import flutter_tts
 import isar_flutter_libs
 import just_audio
 import package_info_plus_macos
-import path_provider_macos
+import path_provider_foundation
 import shared_preferences_foundation
 import speech_to_text_macos
 import sqflite

@@ -1,9 +1,9 @@
+import 'package:ai_pastor/utils/dissmissible_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:grouped_list/grouped_list.dart';
 
 import '../../../components/filled_outline_button.dart';
 import '../../../constants.dart';
-import '../../../models/chat_model.dart';
 import '../../../models/chat_details.dart';
 import '../../../services/isar_services.dart';
 import '../../chat_page/chat_page.dart';
@@ -28,22 +28,6 @@ class _BodyState extends State<Body> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Container(
-          padding: const EdgeInsets.fromLTRB(
-              kDefaultPadding, 0, kDefaultPadding, kDefaultPadding),
-          color: kPrimaryColor,
-          child: Row(
-            children: [
-              FillOutlineButton(press: () {}, text: "Recent Message"),
-              const SizedBox(width: kDefaultPadding),
-              FillOutlineButton(
-                press: () {},
-                text: "Active",
-                isFilled: false,
-              ),
-            ],
-          ),
-        ),
         Expanded(
           child: FutureBuilder(
             future: _isarServices.getAllChatSmall(),
@@ -62,13 +46,24 @@ class _BodyState extends State<Body> {
                     chatSmall.date.month,
                     chatSmall.date.day,
                   ),
-                  itemBuilder: (context, ChatDetails chatSmall) => ChatCard(
-                    chat: chatSmall,
-                    press: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ChatPage(
-                          chatDetails: chatSmall,
+                  itemBuilder: (context, ChatDetails chatDetails) =>
+                      DissmissibleWidget(
+                    key: Key(chatDetails.id.toString()),
+                    item: chatDetails,
+                    onDismissed: (direction) async {
+                      await _isarServices.removeChatFromDetails(chatDetails);
+                      setState(() {
+                        snapshot.data!.remove(chatDetails);
+                      });
+                    },
+                    child: ChatCard(
+                      chat: chatDetails,
+                      press: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ChatPage(
+                            chatDetails: chatDetails,
+                          ),
                         ),
                       ),
                     ),

@@ -4,7 +4,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
-String apiKey = "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";
+import '../secrets.dart';
+
 String replyModel = "text-davinci-003"; //'text-curie-001'; //
 String summaryModel = "text-curie-001";
 int maxTokens = 256;
@@ -85,8 +86,8 @@ class APIService {
         'https://api.openai.com/v1/completions',
         data: {
           "prompt":
-              "in less than six words, give a title to this message: $text",
-          "temperature": 0.5,
+              "in a phrase of less than six words, give a title to this message: $text",
+          "temperature": 0.8,
           "max_tokens": 20,
           "model": "text-curie-001",
         },

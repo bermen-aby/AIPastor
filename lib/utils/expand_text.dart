@@ -28,7 +28,7 @@ class _ExpandTextState extends State<ExpandText> {
             widget.labelHeader,
             style: Theme.of(context)
                 .textTheme
-                .headline6!
+                .titleLarge!
                 .copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(
