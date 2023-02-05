@@ -8,6 +8,7 @@ part 'message.g.dart';
 class Message {
   Id id = Isar.autoIncrement;
   final String text;
+  @Index()
   final DateTime date;
   final bool isSender;
 

@@ -9,6 +9,8 @@ class ChatDetails {
   Id id = Isar.autoIncrement;
   String title;
   String lastMessage;
+
+  @Index()
   late DateTime date;
 
   final chat = IsarLink<Chat>();

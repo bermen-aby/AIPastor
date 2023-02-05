@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:rate_my_app/rate_my_app.dart';
 import '/constants.dart';
 
 class DrawerMenu extends StatefulWidget {
-  const DrawerMenu({Key? key}) : super(key: key);
-
+  const DrawerMenu({this.rateMyApp, Key? key}) : super(key: key);
+  final RateMyApp? rateMyApp;
   @override
   State<DrawerMenu> createState() => _DrawerMenuState();
 }
@@ -54,12 +56,33 @@ class _DrawerMenuState extends State<DrawerMenu> {
                     ],
                   ),
                 ),
-                _buildButton(const Icon(Icons.help_outline), "How it Works",
-                    const SizedBox()),
-                _buildButton(const Icon(Icons.monetization_on_outlined),
-                    "Donate", const SizedBox()),
-                _buildButton(const Icon(Icons.star_outline_outlined),
-                    "Rate the app", const SizedBox()),
+                _buildButton(
+                  const Icon(Icons.help_outline),
+                  "How it Works",
+                ),
+                _buildButton(
+                  const Icon(Icons.monetization_on_outlined),
+                  "Donate",
+                ),
+                _buildButton(
+                    const Icon(Icons.star_outline_outlined), "Rate the app",
+                    onTap: () {
+                  widget.rateMyApp?.showStarRateDialog(
+                    context,
+                    title: "Rate this App",
+                    message:
+                        "Please give us your feedback on the app, to help us improve our services.",
+                    starRatingOptions:
+                        const StarRatingOptions(initialRating: 4),
+                    actionsBuilder: actionsBuilder,
+                  );
+
+                  if (widget.rateMyApp == null) {
+                    Fluttertoast.showToast(
+                      msg: "Works only from the Chat Page",
+                    );
+                  }
+                }),
               ],
             ),
           ),
@@ -68,14 +91,20 @@ class _DrawerMenuState extends State<DrawerMenu> {
     );
   }
 
-  Widget _buildButton(Icon icon, String title, Widget goto) {
+  Widget _buildButton(Icon icon, String title,
+      {Widget? goto, Function? onTap}) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: ElevatedButton(
           onPressed: () {
-            Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => goto,
-            ));
+            if (goto != null) {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => goto,
+              ));
+            }
+            if (onTap != null) {
+              onTap();
+            }
           },
           child: Row(
             children: [
@@ -88,4 +117,44 @@ class _DrawerMenuState extends State<DrawerMenu> {
           )),
     );
   }
+
+  List<Widget> actionsBuilder(BuildContext context, double? stars) =>
+      stars == null
+          ? [_buildCancelButton()]
+          : [_buildOkButton(stars), _buildLaterButton(), _buildCancelButton()];
+
+  Widget _buildOkButton(double? stars) => TextButton(
+        onPressed: () async {
+          if (stars != null) {
+            if (stars >= 4) {
+              widget.rateMyApp!.launchStore();
+            }
+            const event = RateMyAppEventType.rateButtonPressed;
+            await widget.rateMyApp!.callEvent(event);
+            Fluttertoast.showToast(
+              msg: "Thanks for your review!",
+            );
+            Navigator.of(context).pop();
+          }
+        },
+        child: Text("OK"),
+      );
+
+  Widget _buildLaterButton() => TextButton(
+        onPressed: () async {
+          const event = RateMyAppEventType.laterButtonPressed;
+          await widget.rateMyApp!.callEvent(event);
+          Navigator.of(context).pop();
+        },
+        child: Text("LATER"),
+      );
+
+  Widget _buildCancelButton() => TextButton(
+        onPressed: () async {
+          const event = RateMyAppEventType.noButtonPressed;
+          await widget.rateMyApp!.callEvent(event);
+          Navigator.of(context).pop();
+        },
+        child: Text("CANCEL"),
+      );
 }

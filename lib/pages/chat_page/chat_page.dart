@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:ai_pastor/provider/selection_provider.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:flutter/foundation.dart';
@@ -11,6 +12,8 @@ import 'package:grouped_list/grouped_list.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:new_version/new_version.dart';
+import 'package:provider/provider.dart';
+import '../../utils/utils.dart';
 import '/pages/chats_list_page/chats_list_page.dart';
 import '/services/isar_services.dart';
 import '../../models/chat_model.dart';
@@ -39,6 +42,7 @@ enum TtsState { playing, stopped }
 
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _promptController = TextEditingController();
+  final TextEditingController _titleController = TextEditingController();
   String _generatedText = '';
   final APIService _apiServices = APIService();
   bool _isListening = false; // Listening to the mic
@@ -55,12 +59,19 @@ class _ChatPageState extends State<ChatPage> {
 
   final IsarServices _isarServices = IsarServices();
   late Chat? chat;
+  late SelectionProvider _selectionProvider;
 
   @override
   void initState() {
     super.initState();
     initTts();
     initChat();
+
+    _selectionProvider = Provider.of<SelectionProvider>(context, listen: false);
+    _selectionProvider.init();
+    if (maj) {
+      _checkVersion();
+    }
     //WidgetsBinding.instance.addPostFrameCallback((_) => firstVisit());
     WidgetsBinding.instance.addPostFrameCallback((_) => rateMyAppCheck());
     if (kDebugMode) {
@@ -109,6 +120,7 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   initChat() async {
+    _autoPlay = await LocalServices.getAutoPlay();
     if (widget.chatDetails != null) {
       chat = (await _isarServices.getChat(widget.chatDetails!))!;
       if (chat != null) {
@@ -207,65 +219,32 @@ class _ChatPageState extends State<ChatPage> {
                         alignment: !message.isSender
                             ? Alignment.centerLeft
                             : Alignment.centerRight,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Container(
-                              // color: MediaQuery.of(context).platformBrightness ==
-                              //         Brightness.dark
-                              //     ? Colors.white
-                              //     : Colors.black,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: kDefaultPadding * 0.75,
-                                vertical: kDefaultPadding / 2,
-                              ),
-                              margin: message.isSender
-                                  ? const EdgeInsets.fromLTRB(75, 0, 0, 0)
-                                  : const EdgeInsets.fromLTRB(0, 0, 75, 0),
-                              decoration: BoxDecoration(
-                                color: kPrimaryColor
-                                    .withOpacity(message.isSender ? 1 : 0.1),
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              child: Text(
-                                message.text,
-                                style: TextStyle(
-                                  color: message.isSender
-                                      ? Colors.white
-                                      : Theme.of(context)
-                                          .textTheme
-                                          .bodyLarge!
-                                          .color,
-                                ),
-                              ),
-                            ),
-                            if (message.isSender)
-                              const SizedBox(
-                                height: 10,
-                              ),
-                            Row(
-                              //crossAxisAlignment: CrossAxisAlignment.end,
-                              //mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                if (message.isSender)
-                                  const Expanded(child: SizedBox()),
-                                Text(DateFormat.Hm().format(message.date)),
-                                if (!message.isSender) playButton(message.text),
-                              ],
-                            )
-                            // Row(
-                            //   crossAxisAlignment: CrossAxisAlignment.end,
-                            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            //   children: [
-                            //     message.isSender
-                            //         ? Text(DateFormat.Hm().format(message.date))
-                            //         : const SizedBox(),
-                            //     message.isSender
-                            //         ? const SizedBox()
-                            //         : Text(DateFormat.Hm().format(message.date)),
-                            //   ],
-                            // ),
-                          ],
+                        child: GestureDetector(
+                          // onLongPress: () {
+                          //   setState(() {
+                          //     _selectionProvider.selectionMode =
+                          //         !_selectionProvider.selectionMode;
+                          //     if (_selectionProvider.selectionMode) {
+                          //       _selectionProvider.addOrRemoveMessage(message);
+                          //     }
+                          //   });
+                          // },
+                          // onTap: () {
+                          //   if (_selectionProvider.selectionMode) {
+                          //     _selectionProvider.addOrRemoveMessage(message);
+                          //     setState(() {});
+                          //   } else {
+                          //     // Navigator.push(
+                          //     //   context,
+                          //     //   MaterialPageRoute(
+                          //     //     builder: (context) => ChatPage(
+                          //     //       chatDetails: chatDetails,
+                          //     //     ),
+                          //     //   ),
+                          //     // );
+                          //   }
+                          // },
+                          child: _messageCard(message),
                         ),
                       ),
                     )),
@@ -284,79 +263,96 @@ class _ChatPageState extends State<ChatPage> {
                       ),
                     ),
                     JelloIn(
-                      child: SafeArea(
-                        child: Row(
-                          children: [
-                            AvatarGlow(
-                              animate: _isListening,
-                              endRadius: _isListening ? 55 : 20,
-                              child: TextButton(
-                                  onPressed: () {
-                                    if (!_apiProcess) {
-                                      _toggleRecording();
-                                    }
-                                  },
-                                  child: _isListening
-                                      ? const Icon(
-                                          Icons.stop_circle,
-                                          color: Colors.red,
-                                        )
-                                      : const Icon(
-                                          Icons.mic,
-                                          color: kPrimaryColor,
-                                        )),
-                            ),
-                            const SizedBox(width: kDefaultPadding / 3),
-                            Expanded(
-                              child: Container(
-                                //color: Colors.grey.shade300,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: kDefaultPadding * 0.40,
-                                ),
-                                decoration: BoxDecoration(
-                                  //color: kPrimaryColor.withOpacity(0.05),
-                                  borderRadius: BorderRadius.circular(40),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: TextField(
-                                        maxLines: 8,
-                                        minLines: 1,
-                                        enabled: !_apiProcess,
-                                        controller: _promptController,
-                                        decoration: const InputDecoration(
-                                          contentPadding: EdgeInsets.all(12),
-                                          border: InputBorder.none,
-                                          hintText: 'Type message',
+                      child: FutureBuilder(
+                          future: LocalServices.hasInternet(),
+                          builder: (context, AsyncSnapshot<bool> hasInternet) {
+                            if (hasInternet.hasData) {
+                              if (hasInternet.data!) {
+                                return SafeArea(
+                                  child: Row(
+                                    children: [
+                                      AvatarGlow(
+                                        animate: _isListening,
+                                        endRadius: _isListening ? 55 : 20,
+                                        child: TextButton(
+                                            onPressed: () {
+                                              if (!_apiProcess) {
+                                                _toggleRecording();
+                                              }
+                                            },
+                                            child: _isListening
+                                                ? const Icon(
+                                                    Icons.stop_circle,
+                                                    color: Colors.red,
+                                                  )
+                                                : const Icon(
+                                                    Icons.mic,
+                                                    color: kPrimaryColor,
+                                                  )),
+                                      ),
+                                      const SizedBox(
+                                          width: kDefaultPadding / 3),
+                                      Expanded(
+                                        child: Container(
+                                          //color: Colors.grey.shade300,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: kDefaultPadding * 0.40,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            //color: kPrimaryColor.withOpacity(0.05),
+                                            borderRadius:
+                                                BorderRadius.circular(40),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Expanded(
+                                                child: TextField(
+                                                  maxLines: 8,
+                                                  minLines: 1,
+                                                  enabled: !_apiProcess,
+                                                  controller: _promptController,
+                                                  decoration:
+                                                      const InputDecoration(
+                                                    contentPadding:
+                                                        EdgeInsets.all(12),
+                                                    //border: InputBorder.none,
+                                                    hintText: 'Type message',
+                                                  ),
+                                                ),
+                                              ),
+                                              TextButton(
+                                                onPressed: () async {
+                                                  if (await LocalServices
+                                                      .hasInternet()) {
+                                                    _sendText();
+                                                  }
+                                                  setState(() {});
+                                                },
+                                                child: _apiProcess
+                                                    ? SizedBox(
+                                                        width: 40,
+                                                        height: 40,
+                                                        child: Lottie.asset(
+                                                          "assets/lottie/message_delivery.json",
+                                                          repeat: true,
+                                                        ),
+                                                      )
+                                                    : const Icon(
+                                                        Icons.send,
+                                                        color: kPrimaryColor,
+                                                      ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                    TextButton(
-                                      onPressed: () async {
-                                        _sendText();
-                                      },
-                                      child: _apiProcess
-                                          ? SizedBox(
-                                              width: 40,
-                                              height: 40,
-                                              child: Lottie.asset(
-                                                "assets/lottie/message_delivery.json",
-                                                repeat: true,
-                                              ),
-                                            )
-                                          : const Icon(
-                                              Icons.send,
-                                              color: kPrimaryColor,
-                                            ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+                            }
+                            return noNet();
+                          }),
                     ),
                     const SizedBox(height: 16.0),
                   ],
@@ -399,59 +395,73 @@ class _ChatPageState extends State<ChatPage> {
     return AppBar(
       automaticallyImplyLeading: false,
 
-      title: Row(
-        //crossAxisAlignment: CrossAxisAlignment.center,
-        //mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          BounceInDown(
-            child: const CircleAvatar(
-              radius: 30,
-              backgroundImage: AssetImage("assets/images/pastor.png"),
-            ),
-          ),
-          const SizedBox(width: kDefaultPadding * 0.50),
-          Expanded(
-            child: InkWell(
-              onTap: () {},
-              child: TextButton(
-                onPressed: () {},
-                child: FadeIn(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Pastor Jacob", // AI Pastor
-                        style: TextStyle(fontSize: 16, color: Colors.white),
-                      ),
-                      Text(
-                        widget.chatDetails?.title ?? '',
-                        //"Active 3m ago",
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.white,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      )
-                    ],
+      title: _selectionProvider.selectionMode
+          ? Text(_selectionProvider.messages.length.toString())
+          : InkWell(
+              onTap: () {
+                changeTitle();
+              },
+              child: Row(
+                //crossAxisAlignment: CrossAxisAlignment.center,
+                //mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  BounceInDown(
+                    child: const CircleAvatar(
+                      radius: 30,
+                      backgroundImage: AssetImage("assets/images/pastor.png"),
+                    ),
                   ),
-                ),
+                  const SizedBox(width: kDefaultPadding * 0.50),
+                  Expanded(
+                    child: FadeIn(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Pastor Jacob", // AI Pastor
+                            style: TextStyle(fontSize: 16, color: Colors.white),
+                          ),
+                          Text(
+                            widget.chatDetails?.title ?? '',
+                            //"Active 3m ago",
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.white,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                  )
+                ],
               ),
             ),
-          )
-        ],
-      ),
-      leading: IconButton(
-        icon: const Icon(Icons.history),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const ChatsListPage(),
-            ),
-          );
-        },
-      ), //BackButton(),
+      leading: _selectionProvider.selectionMode
+          ? IconButton(
+              onPressed: () => setState(() {
+                    _selectionProvider.selectionMode = false;
+                    _selectionProvider.messages.clear();
+                  }),
+              icon: const Icon(Icons.arrow_back_rounded))
+          : IconButton(
+              icon: const Icon(Icons.history),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ChatsListPage(),
+                  ),
+                );
+              },
+            ), //BackButton(),
       actions: [
+        if (_selectionProvider.selectionMode)
+          IconButton(
+            tooltip: "Delete selected messages",
+            onPressed: () => _deleteButton(),
+            icon: const Icon(Icons.delete),
+          ),
         IconButton(
           icon: _autoPlay
               ? const Icon(Icons.volume_up)
@@ -460,6 +470,7 @@ class _ChatPageState extends State<ChatPage> {
           onPressed: () {
             setState(() {
               _autoPlay = !_autoPlay;
+              LocalServices.setAutoPlay(_autoPlay);
             });
           },
         ),
@@ -470,12 +481,12 @@ class _ChatPageState extends State<ChatPage> {
                 return AnimatedSwitcher(
                   duration: const Duration(milliseconds: 250),
                   child: Icon(
-                    value.visible ? Icons.clear : Icons.settings,
+                    value.visible ? Icons.clear : Icons.more_vert,
                     key: ValueKey<bool>(value.visible),
                   ),
                 );
               },
-              child: const Icon(Icons.settings)),
+              child: const Icon(Icons.more_vert)),
           onPressed: () {
             _advancedDrawerController.showDrawer();
           },
@@ -557,8 +568,9 @@ class _ChatPageState extends State<ChatPage> {
         if (widget.rateMyApp!.shouldOpenDialog) {
           widget.rateMyApp!.showStarRateDialog(
             context,
-            title: "AppLocalizations.of(context)!.rateTitle",
-            message: "AppLocalizations.of(context)!.rateReview",
+            title: "Your opinion on the app",
+            message:
+                "Please give us your feedback on the app, to help us improve our services.",
             starRatingOptions: const StarRatingOptions(initialRating: 4),
             actionsBuilder: actionsBuilder,
           );
@@ -570,7 +582,11 @@ class _ChatPageState extends State<ChatPage> {
   List<Widget> actionsBuilder(BuildContext context, double? stars) =>
       stars == null
           ? [_buildCancelButton()]
-          : [_buildOkButton(stars), _buildLaterButton(), _buildCancelButton()];
+          : [
+              _buildCancelButton(),
+              _buildLaterButton(),
+              _buildOkButton(stars),
+            ];
 
   Widget _buildOkButton(double? stars) => TextButton(
         onPressed: () async {
@@ -581,12 +597,15 @@ class _ChatPageState extends State<ChatPage> {
             const event = RateMyAppEventType.rateButtonPressed;
             await widget.rateMyApp!.callEvent(event);
             Fluttertoast.showToast(
-              msg: "AppLocalizations.of(context)!.thanksForReview",
+              msg: "Thanks for your review!",
             );
             _popWindow();
           }
         },
-        child: const Text("AppLocalizations.of(context)!.okText"),
+        child: const Text(
+          "OK",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
       );
 
   Widget _buildLaterButton() => TextButton(
@@ -596,7 +615,10 @@ class _ChatPageState extends State<ChatPage> {
 
           _popWindow();
         },
-        child: const Text("AppLocalizations.of(context)!.later"),
+        child: const Text(
+          "LATER",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
       );
 
   Widget _buildCancelButton() => TextButton(
@@ -605,7 +627,10 @@ class _ChatPageState extends State<ChatPage> {
           await widget.rateMyApp!.callEvent(event);
           _popWindow();
         },
-        child: const Text("AppLocalizations.of(context)!.cancel"),
+        child: const Text(
+          "CANCEL",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
       );
 
   // RateMyAppNoButton(
@@ -615,13 +640,14 @@ class _ChatPageState extends State<ChatPage> {
 
   Future<bool> checkConnection() async {
     connexion = await LocalServices.hasInternet();
+    setState(() {});
     return true;
   }
 
   Future<bool> _checkVersion() async {
     final newVersion = NewVersion(
-      androidId: "com.premgroup.prem_market", //"com.snapchat.android",
-      iOSId: "com.premmiumgroup.premMarket",
+      androidId: playStoreId, //"com.snapchat.android",
+      iOSId: appleStoreId,
     );
     try {
       final status = await newVersion.getVersionStatus().then((value) {
@@ -630,12 +656,10 @@ class _ChatPageState extends State<ChatPage> {
             newVersion.showUpdateDialog(
               context: context,
               versionStatus: value!,
-              dialogText: "AppLocalizations.of(context)!.updateText",
-              dialogTitle: "AppLocalizations.of(context)!.updateNotice",
-              dismissButtonText:
-                  "AppLocalizations.of(context)!.later.toUpperCase()",
-              updateButtonText:
-                  "AppLocalizations.of(context)!.update.toUpperCase()",
+              dialogText: "A new version of the app is available!",
+              dialogTitle: "Update Available",
+              dismissButtonText: "LATER",
+              updateButtonText: "UPDATE",
             );
           }
         });
@@ -683,27 +707,208 @@ class _ChatPageState extends State<ChatPage> {
     }
 
     chat!.details.value = widget.chatDetails;
-    chat!.messages.add(message);
+    //chat!.messages.add(message);
+    debugPrint(
+        "LOG: chat.details.value.lastMessage ${chat?.details.value?.lastMessage}");
+    debugPrint("LOG: chat.details.value.id ${chat?.details.value?.id}");
 
-    _isarServices.saveChat(chat!, message);
-    _generatedText = await _apiServices.generateReply(message.text);
+    chat!.summary += await _apiServices.generateSummary(message);
+    chat = await _isarServices.saveChat(chat!, message);
+    _generatedText =
+        await _apiServices.generateReply(message.text, context: chat?.summary);
     final messageResponse =
         Message(text: _generatedText, date: DateTime.now(), isSender: false);
     setState(() {
       messages.add(messageResponse);
       _apiProcess = false;
     });
+    if (_autoPlay &&
+        _ttsState == TtsState.stopped &&
+        !messageResponse.text.contains("Error generating")) {
+      speak(messageResponse.text);
+    }
     widget.chatDetails!
       ..date = DateTime.now()
       ..lastMessage = _generatedText;
-    chat!.messages.add(messageResponse);
-    _isarServices.saveChat(chat!, messageResponse);
+    //chat!.messages.add(messageResponse);
+    //chat = await _isarServices.saveChat(chat!, messageResponse);
     if (kDebugMode) {
       print("New title is: ${widget.chatDetails?.title}");
     }
+
+    chat!.summary += await _apiServices.generateSummary(messageResponse);
+    chat = await _isarServices.saveChat(chat!, messageResponse);
+  }
+
+  _deleteButton() {
+    Utils.showMessage(
+      context,
+      "Delete",
+      "Are you sure you want to remove all these messages?",
+      "NO",
+      () {
+        _popWindow();
+      },
+      buttonText2: "YES",
+      onPressed2: () {
+        _selectionProvider.deleteMessages();
+        setState(() {});
+        _popWindow();
+      },
+      isConfirmationDialog: true,
+    );
   }
 
   _popWindow() {
     Navigator.of(context).pop();
+  }
+
+  Widget noNet() {
+    return SafeArea(
+      child: Row(
+        children: [
+          AvatarGlow(
+            animate: true,
+            glowColor: Colors.redAccent,
+            endRadius: _isListening ? 55 : 20,
+            child: TextButton(
+                onPressed: () {
+                  if (!_apiProcess) {
+                    _toggleRecording();
+                  }
+                },
+                child: const Icon(Icons.wifi_off)),
+          ),
+          const SizedBox(width: kDefaultPadding / 3),
+          Expanded(
+            child: Container(
+              //color: Colors.grey.shade300,
+              padding: const EdgeInsets.symmetric(
+                horizontal: kDefaultPadding * 0.40,
+              ),
+              decoration: BoxDecoration(
+                //color: kPrimaryColor.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(40),
+              ),
+              child: Row(
+                children: [
+                  const Expanded(
+                    child: Text('Please connect to Internet'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      checkConnection();
+                    },
+                    child: const Text('RETRY'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _messageCard(Message message) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Card(
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: kDefaultPadding * 0.75,
+              vertical: kDefaultPadding / 2,
+            ),
+            margin: message.isSender
+                ? const EdgeInsets.fromLTRB(75, 0, 0, 0)
+                : const EdgeInsets.fromLTRB(0, 0, 75, 0),
+            decoration: BoxDecoration(
+              color: _selectionProvider.containsMessage(message)
+                  ? Colors.white
+                  : kPrimaryColor.withOpacity(message.isSender ? 1 : 0.3),
+              borderRadius: BorderRadius.circular(30),
+            ),
+            child: Text(
+              message.text,
+              style: TextStyle(
+                color: _selectionProvider.containsMessage(message)
+                    ? kPrimaryColor
+                    : message.isSender
+                        ? Colors.white
+                        : Theme.of(context).textTheme.bodyLarge!.color,
+              ),
+            ),
+          ),
+        ),
+
+        if (message.isSender)
+          const SizedBox(
+            height: 10,
+          ),
+        Row(
+          children: [
+            if (message.isSender) const Expanded(child: SizedBox()),
+            Text(DateFormat.Hm().format(message.date)),
+            if (!message.isSender) playButton(message.text),
+          ],
+        )
+        // Row(
+        //   crossAxisAlignment: CrossAxisAlignment.end,
+        //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        //   children: [
+        //     message.isSender
+        //         ? Text(DateFormat.Hm().format(message.date))
+        //         : const SizedBox(),
+        //     message.isSender
+        //         ? const SizedBox()
+        //         : Text(DateFormat.Hm().format(message.date)),
+        //   ],
+        // ),
+      ],
+    );
+  }
+
+  void changeTitle() {
+    _titleController.text = widget.chatDetails!.title;
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text(
+              "Change Title",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                //color: PremStyle.primary.shade900,
+              ),
+            ),
+            content: TextField(
+              controller: _titleController,
+              maxLength: 40,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  //return
+                  _popWindow();
+                },
+                child: const Text("CANCEL"),
+              ),
+              TextButton(
+                onPressed: () async {
+                  //return
+                  setState(() {
+                    widget.chatDetails!.title = _titleController.text;
+                  });
+                  chat!.details.value = widget.chatDetails;
+                  chat = await _isarServices.saveChat(chat!, null);
+
+                  _popWindow();
+                },
+                child: const Text("CONFIRM"),
+              )
+            ],
+          );
+        });
   }
 }

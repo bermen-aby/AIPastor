@@ -1,29 +1,33 @@
 import 'dart:io';
 
+import 'package:ai_pastor/models/message.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
-//import '../secrets.dart';
+import '../secrets.dart';
 
 String replyModel = "text-davinci-003"; //'text-curie-001'; //
 String summaryModel = "text-curie-001";
 int maxTokens = 256;
 String stop = ".";
 //Rajoute ta cle api ici
-String apiKey = "...";
+//String apiKey = "...";
 
 class APIService {
   final _speech = SpeechToText();
 
   Future<String> generateReply(String prompt, {String? context}) async {
+    if (kDebugMode) {
+      print("LOG: context: $context");
+    }
     try {
       Response response = await Dio().post(
         "https://api.openai.com/v1/completions",
         data: {
           "model": replyModel,
           "prompt":
-              "You are Pastor Jacob. Continue the discussion by replying to this: $prompt",
+              "You are Pastor Jacob. Continue the discussion by replying to this, and adding a revelant Bible verse if needed:\n$context ME: $prompt ? \n PASTOR: ",
           "max_tokens": maxTokens,
         },
         options: Options(
@@ -48,12 +52,13 @@ class APIService {
     }
   }
 
-  Future<String> generateSummary(String text) async {
+  Future<String> generateSummary(Message message) async {
+    //final discussion = getDiscussion(textsList);
     try {
       Response response = await Dio().post(
         "https://api.openai.com/v1/completions",
         data: {
-          "prompt": "Please summarize this text: $text",
+          "prompt": "Please summarize this text: ${message.text}",
           "temperature": 0.5,
           "max_tokens": 100,
           "top_p": 1,
@@ -69,7 +74,16 @@ class APIService {
       );
       if (response.statusCode == 200) {
         var generatedText = response.data['choices'][0]['text'];
-        return removeEmptyLines(generatedText);
+        String summary = "";
+        if (message.isSender) {
+          summary += "ME: ${removeEmptyLines(generatedText)} \n ";
+        } else {
+          summary += "PASTOR: ${removeEmptyLines(generatedText)} \n ";
+        }
+        if (kDebugMode) {
+          print("LOG: Summary: $summary");
+        }
+        return summary;
       } else {
         throw Exception(
             "Failed to generate summary. Status code: ${response.statusCode}");
@@ -88,7 +102,7 @@ class APIService {
         'https://api.openai.com/v1/completions',
         data: {
           "prompt":
-              "in a phrase of less than six words, give a title to this message: $text",
+              "in a phrase less than five words, just give a topic only, to this message : $text",
           "temperature": 0.8,
           "max_tokens": 20,
           "model": "text-curie-001",
@@ -124,6 +138,19 @@ class APIService {
 
   String removeEmptyLines(String text) {
     return text.replaceAll(RegExp(r'^\s*\n', multiLine: true), '');
+  }
+
+  String getDiscussion(List<Message> messagesList) {
+    String discussion = "";
+
+    for (Message message in messagesList) {
+      if (message.isSender) {
+        discussion += "ME: ${message.text} \n ";
+      } else {
+        discussion += "Pastor: ${message.text} \n ";
+      }
+    }
+    return discussion;
   }
 
   Future<bool> toggleRecording({

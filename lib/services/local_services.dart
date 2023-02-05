@@ -43,6 +43,23 @@ class LocalServices {
     return prefs.setBool("dark_mode", false);
   }
 
+  static Future<bool> getAutoPlay() async {
+    final prefs = await SharedPreferences.getInstance();
+    bool autoPlay;
+    prefs.getBool("autoplay") == false ? autoPlay = false : autoPlay = true;
+    return autoPlay;
+  }
+
+  static Future<bool?> setAutoPlay(
+    bool? autoPlay,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (autoPlay == true) {
+      return prefs.setBool("autoplay", true);
+    }
+    return prefs.setBool("autoplay", false);
+  }
+
 //----------------------------------------------------------
   // LANGUAGE
   static Future<String?> getLanguage() async {

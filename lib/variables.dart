@@ -4,4 +4,5 @@ bool isDarkMode = false;
 bool rebuild = false;
 bool maj = true;
 bool isPopupActive = false;
+bool firstVisit = true;
 late Isar isar;

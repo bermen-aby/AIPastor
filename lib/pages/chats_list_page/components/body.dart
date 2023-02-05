@@ -1,6 +1,8 @@
+import 'package:ai_pastor/provider/selection_provider.dart';
 import 'package:ai_pastor/utils/dissmissible_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:grouped_list/grouped_list.dart';
+import 'package:provider/provider.dart';
 
 import '../../../components/filled_outline_button.dart';
 import '../../../constants.dart';
@@ -18,10 +20,12 @@ class Body extends StatefulWidget {
 
 class _BodyState extends State<Body> {
   final IsarServices _isarServices = IsarServices();
+  late SelectionProvider _selectionProvider;
 
   @override
   void initState() {
     super.initState();
+    _selectionProvider = Provider.of<SelectionProvider>(context, listen: false);
   }
 
   @override
@@ -56,16 +60,55 @@ class _BodyState extends State<Body> {
                         snapshot.data!.remove(chatDetails);
                       });
                     },
-                    child: ChatCard(
-                      chat: chatDetails,
-                      press: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ChatPage(
-                            chatDetails: chatDetails,
-                          ),
+                    child: Stack(
+                      children: [
+                        ChatCard(
+                          chat: chatDetails,
+                          longPress: () {
+                            setState(() {
+                              _selectionProvider.selectionMode =
+                                  !_selectionProvider.selectionMode;
+                            });
+                            if (_selectionProvider.selectionMode) {
+                              if (_selectionProvider.chatsDetails
+                                  .contains(chatDetails)) {
+                                _selectionProvider
+                                    .removeChatsDetails(chatDetails);
+                              } else {
+                                _selectionProvider.addChatsDetails(chatDetails);
+                              }
+                            }
+                            setState(() {});
+                          },
+                          press: () {
+                            if (_selectionProvider.selectionMode) {
+                              if (_selectionProvider.chatsDetails
+                                  .contains(chatDetails)) {
+                                _selectionProvider
+                                    .removeChatsDetails(chatDetails);
+                              } else {
+                                _selectionProvider.addChatsDetails(chatDetails);
+                              }
+                              setState(() {});
+                            } else {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ChatPage(
+                                    chatDetails: chatDetails,
+                                  ),
+                                ),
+                              );
+                            }
+                          },
                         ),
-                      ),
+                        if (_selectionProvider.selectionMode &&
+                            _selectionProvider.chatsDetails
+                                .contains(chatDetails))
+                          Container(
+                            color: Colors.blue.withOpacity(0.5),
+                          ),
+                      ],
                     ),
                   ),
                 );

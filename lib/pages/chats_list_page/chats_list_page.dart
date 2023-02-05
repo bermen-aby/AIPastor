@@ -1,10 +1,17 @@
+import 'package:ai_pastor/models/chat_details.dart';
+import 'package:ai_pastor/provider/selection_provider.dart';
+import 'package:ai_pastor/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
+import 'package:grouped_list/grouped_list.dart';
+import 'package:provider/provider.dart';
+import '../../services/isar_services.dart';
+import '../../utils/dissmissible_widget.dart';
 import '/pages/chat_page/chat_page.dart';
 
 import '../../constants.dart';
 import '../components/drawer_menu.dart';
-import 'components/body.dart';
+import 'components/chat_card.dart';
 
 class ChatsListPage extends StatefulWidget {
   const ChatsListPage({Key? key}) : super(key: key);
@@ -15,10 +22,16 @@ class ChatsListPage extends StatefulWidget {
 
 class _ChatsListPageState extends State<ChatsListPage> {
   final _advancedDrawerController = AdvancedDrawerController();
+  final TextEditingController _titleController = TextEditingController();
+  late SelectionProvider _selectionProvider;
+  final IsarServices _isarServices = IsarServices();
+  ChatDetails? _newChatDetails;
 
   @override
   void initState() {
     super.initState();
+    _selectionProvider = Provider.of<SelectionProvider>(context, listen: false);
+    _selectionProvider.init();
   }
 
   @override
@@ -33,7 +46,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
       ),
       child: Scaffold(
         appBar: buildAppBar(),
-        body: const Body(),
+        body: body(),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
             Navigator.push(
@@ -57,15 +70,187 @@ class _ChatsListPageState extends State<ChatsListPage> {
   AppBar buildAppBar() {
     return AppBar(
       automaticallyImplyLeading: false,
-      title: const Text("Chats"),
+      leading: _selectionProvider.selectionMode
+          ? IconButton(
+              onPressed: () => setState(() {
+                    _selectionProvider.selectionMode = false;
+                    _selectionProvider.chatsDetails.clear();
+                  }),
+              icon: const Icon(Icons.arrow_back_rounded))
+          : const SizedBox(),
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          if (_selectionProvider.selectionMode)
+            Text(_selectionProvider.chatsDetails.length.toString()),
+          const Expanded(
+              child: Align(alignment: Alignment.center, child: Text("Chats"))),
+        ],
+      ),
       actions: [
+        if (_selectionProvider.selectionMode &&
+            _selectionProvider.chatsDetails.length == 1)
+          IconButton(
+              onPressed: () => changeTitle(), icon: const Icon(Icons.edit)),
+        if (_selectionProvider.selectionMode)
+          IconButton(
+              onPressed: () => _deleteButton(), icon: const Icon(Icons.delete)),
         IconButton(
-          icon: const Icon(Icons.settings),
+          icon: const Icon(Icons.more_vert),
           onPressed: () {
             _advancedDrawerController.showDrawer();
           },
         ),
       ],
     );
+  }
+
+  Widget body() {
+    return Column(
+      children: [
+        Expanded(
+          child: FutureBuilder(
+            future: _isarServices.getAllChatSmall(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return GroupedListView<ChatDetails, DateTime>(
+                  padding: const EdgeInsets.all(8),
+                  reverse: true,
+                  order: GroupedListOrder.ASC,
+                  useStickyGroupSeparators: true,
+                  shrinkWrap: true,
+                  groupHeaderBuilder: (element) => const SizedBox(),
+                  elements: snapshot.data as List<ChatDetails>,
+                  groupBy: (chatSmall) => DateTime(
+                    chatSmall.date.year,
+                    chatSmall.date.month,
+                    chatSmall.date.day,
+                  ),
+                  itemBuilder: (context, ChatDetails chatDetails) {
+                    if (_newChatDetails != null) {
+                      if (_newChatDetails!.id == chatDetails.id) {
+                        setState(() {
+                          chatDetails = _newChatDetails!;
+                        });
+                      }
+                    }
+                    return DissmissibleWidget(
+                      key: Key(chatDetails.id.toString()),
+                      item: chatDetails,
+                      onDismissed: (direction) async {
+                        await _isarServices.removeChatFromDetails(chatDetails);
+                        setState(() {
+                          snapshot.data!.remove(chatDetails);
+                        });
+                      },
+                      child: ChatCard(
+                        chat: chatDetails,
+                        longPress: () {
+                          setState(() {
+                            _selectionProvider.selectionMode =
+                                !_selectionProvider.selectionMode;
+                            if (_selectionProvider.selectionMode) {
+                              _selectionProvider
+                                  .addOrRemoveChatDetails(chatDetails);
+                            }
+                          });
+                        },
+                        press: () {
+                          if (_selectionProvider.selectionMode) {
+                            _selectionProvider
+                                .addOrRemoveChatDetails(chatDetails);
+                            setState(() {});
+                          } else {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ChatPage(
+                                  chatDetails: chatDetails,
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    );
+                  },
+                );
+              }
+
+              return const Text("No Chat yet!");
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  _deleteButton() {
+    Utils.showMessage(
+      context,
+      "Delete",
+      "Are you sure you want to remove all these discussions?",
+      "NO",
+      () {
+        Navigator.of(context).pop();
+      },
+      buttonText2: "YES",
+      onPressed2: () {
+        _selectionProvider.deleteChatsDetails();
+        setState(() {});
+        Navigator.of(context).pop();
+      },
+      isConfirmationDialog: true,
+    );
+  }
+
+  void changeTitle() {
+    _titleController.text = _selectionProvider.chatsDetails.first.title;
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text(
+              "Change Title",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                //color: PremStyle.primary.shade900,
+              ),
+            ),
+            content: TextField(
+              controller: _titleController,
+              maxLength: 40,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  //return
+                  _popWindow();
+                },
+                child: const Text("CANCEL"),
+              ),
+              TextButton(
+                onPressed: () async {
+                  //return
+                  setState(() {
+                    _selectionProvider.chatsDetails.first.title =
+                        _titleController.text;
+                  });
+
+                  _selectionProvider.chatsDetails.first = await _isarServices
+                      .saveDetails(_selectionProvider.chatsDetails.first);
+                  setState(() {});
+
+                  _popWindow();
+                },
+                child: const Text("CONFIRM"),
+              )
+            ],
+          );
+        });
+  }
+
+  _popWindow() {
+    Navigator.of(context).pop();
   }
 }

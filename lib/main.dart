@@ -1,3 +1,8 @@
+import 'package:ai_pastor/components/rate_app_init_widget.dart';
+import 'package:ai_pastor/pages/onboarding/onboarding_page.dart';
+import 'package:ai_pastor/provider/selection_provider.dart';
+import 'package:ai_pastor/services/local_services.dart';
+import 'package:animate_do/animate_do.dart';
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -5,8 +10,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '/pages/chat_page/chat_page.dart';
-import '/provider/loader_provider.dart';
+//import 'gsheet/slider_sheet_api.dart';
 import 'theme.dart';
+import 'variables.dart';
 
 /*const AndroidNotificationChannel channel = AndroidNotificationChannel(
   'high_importance_channel',
@@ -39,6 +45,9 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  //await SliderSheetAPI.init();
+  isDarkMode = await LocalServices.isDarkMode();
+  firstVisit = await LocalServices.firstVisit();
 
   runApp(
     const MyApp(),
@@ -56,35 +65,43 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (context) => LoaderProvider(),
-          child: ChatPage(),
+          create: (context) => SelectionProvider(),
+          //child: ChatPage(),
         ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
+        //themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
         theme: lightThemeData(context),
         darkTheme: darkThemeData(context),
-        title: 'Login Page',
+        title: 'AI PASTOR',
         home: //const ChatPage(),
-            AnimatedSplashScreen(
-                backgroundColor: Theme.of(context).colorScheme.background,
-                splashIconSize: 4000,
-                splash: Container(
-                  decoration: const BoxDecoration(
-                    image: DecorationImage(
-                      fit: BoxFit.fitHeight,
-                      image: AssetImage(
-                        "assets/images/splashscreen.png",
-                      ),
-                    ),
+            JelloIn(
+          child: AnimatedSplashScreen(
+            backgroundColor: Theme.of(context).colorScheme.background,
+            splashIconSize: 1942,
+            splash: Container(
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  fit: BoxFit.fitHeight,
+                  image: AssetImage(
+                    "assets/images/splashscreen.png",
                   ),
                 ),
-                nextScreen: ChatPage()),
+              ),
+            ),
+            nextScreen: RateAppInitWidget(
+              builder: (rateMyApp) => firstVisit
+                  ? OnboardingPage(
+                      rateMyApp: rateMyApp,
+                    )
+                  : ChatPage(
+                      rateMyApp: rateMyApp,
+                    ),
+            ),
+          ),
+        ),
       ),
     );
-    // return MaterialApp(
-    //   title: 'Login Page',
-    //   home: LoginPage(),
-    // );
   }
 }
