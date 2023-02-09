@@ -3,6 +3,7 @@ import 'package:ai_pastor/utils/dissmissible_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:grouped_list/grouped_list.dart';
 import 'package:provider/provider.dart';
+import 'package:rate_my_app/rate_my_app.dart';
 
 import '../../../components/filled_outline_button.dart';
 import '../../../constants.dart';
@@ -12,8 +13,8 @@ import '../../chat_page/chat_page.dart';
 import 'chat_card.dart';
 
 class Body extends StatefulWidget {
-  const Body({super.key});
-
+  const Body({super.key, required this.rateMyApp});
+  final RateMyApp rateMyApp;
   @override
   State<Body> createState() => _BodyState();
 }
@@ -96,6 +97,7 @@ class _BodyState extends State<Body> {
                                 MaterialPageRoute(
                                   builder: (context) => ChatPage(
                                     chatDetails: chatDetails,
+                                    rateMyApp: widget.rateMyApp,
                                   ),
                                 ),
                               );

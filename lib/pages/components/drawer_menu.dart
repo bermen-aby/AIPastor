@@ -1,11 +1,16 @@
+import 'package:ai_pastor/pages/components/change_theme_button_widget.dart';
+import 'package:ai_pastor/pages/onboarding/onboarding_page.dart';
+import 'package:ai_pastor/pages/onboarding/slides/donation.dart';
+import 'package:ai_pastor/pages/onboarding/slides/slides.dart';
+import 'package:ai_pastor/utils/translate.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:rate_my_app/rate_my_app.dart';
 import '/constants.dart';
 
 class DrawerMenu extends StatefulWidget {
-  const DrawerMenu({this.rateMyApp, Key? key}) : super(key: key);
-  final RateMyApp? rateMyApp;
+  const DrawerMenu({required this.rateMyApp, Key? key}) : super(key: key);
+  final RateMyApp rateMyApp;
   @override
   State<DrawerMenu> createState() => _DrawerMenuState();
 }
@@ -47,42 +52,56 @@ class _DrawerMenuState extends State<DrawerMenu> {
                       ),
                       Text(
                         "AI PASTOR",
-                        style: TextStyle(fontSize: 18),
+                        style: textButtonStyle,
                       ),
                       Text(
                         "Jacob",
-                        style: TextStyle(fontSize: 18),
+                        style: textButtonStyle,
                       ),
                     ],
                   ),
                 ),
                 _buildButton(
                   const Icon(Icons.help_outline),
-                  "How it Works",
+                  t(context).howItWorks,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => OnboardingPage(
+                          rateMyApp: widget.rateMyApp,
+                        ),
+                      ),
+                    );
+                  },
                 ),
                 _buildButton(
                   const Icon(Icons.monetization_on_outlined),
-                  "Donate",
+                  t(context).donate,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const Donation(
+                          slideNumber: 3,
+                          donatePageOnly: true,
+                        ),
+                      ),
+                    );
+                  },
                 ),
-                _buildButton(
-                    const Icon(Icons.star_outline_outlined), "Rate the app",
-                    onTap: () {
-                  widget.rateMyApp?.showStarRateDialog(
+                _buildButton(const Icon(Icons.star_outline_outlined),
+                    t(context).rateTheApp, onTap: () {
+                  widget.rateMyApp.showStarRateDialog(
                     context,
-                    title: "Rate this App",
-                    message:
-                        "Please give us your feedback on the app, to help us improve our services.",
+                    title: t(context).rateTheApp,
+                    message: t(context).rateAppMessage,
                     starRatingOptions:
                         const StarRatingOptions(initialRating: 4),
                     actionsBuilder: actionsBuilder,
                   );
-
-                  if (widget.rateMyApp == null) {
-                    Fluttertoast.showToast(
-                      msg: "Works only from the Chat Page",
-                    );
-                  }
                 }),
+                const ChangeThemeButtonWidget(),
               ],
             ),
           ),
@@ -121,40 +140,53 @@ class _DrawerMenuState extends State<DrawerMenu> {
   List<Widget> actionsBuilder(BuildContext context, double? stars) =>
       stars == null
           ? [_buildCancelButton()]
-          : [_buildOkButton(stars), _buildLaterButton(), _buildCancelButton()];
+          : [
+              _buildCancelButton(),
+              _buildLaterButton(),
+              _buildOkButton(stars),
+            ];
 
   Widget _buildOkButton(double? stars) => TextButton(
         onPressed: () async {
           if (stars != null) {
             if (stars >= 4) {
-              widget.rateMyApp!.launchStore();
+              widget.rateMyApp.launchStore();
             }
             const event = RateMyAppEventType.rateButtonPressed;
-            await widget.rateMyApp!.callEvent(event);
+            await widget.rateMyApp.callEvent(event);
             Fluttertoast.showToast(
-              msg: "Thanks for your review!",
+              msg: t(context).thanksForRating,
             );
             Navigator.of(context).pop();
           }
         },
-        child: Text("OK"),
+        child: Text(
+          t(context).ok.toUpperCase(),
+          style: buttonStyle,
+        ),
       );
 
   Widget _buildLaterButton() => TextButton(
         onPressed: () async {
           const event = RateMyAppEventType.laterButtonPressed;
-          await widget.rateMyApp!.callEvent(event);
+          await widget.rateMyApp.callEvent(event);
           Navigator.of(context).pop();
         },
-        child: Text("LATER"),
+        child: Text(
+          t(context).later.toUpperCase(),
+          style: buttonStyle,
+        ),
       );
 
   Widget _buildCancelButton() => TextButton(
         onPressed: () async {
           const event = RateMyAppEventType.noButtonPressed;
-          await widget.rateMyApp!.callEvent(event);
+          await widget.rateMyApp.callEvent(event);
           Navigator.of(context).pop();
         },
-        child: Text("CANCEL"),
+        child: Text(
+          t(context).cancel.toUpperCase(),
+          style: buttonStyle,
+        ),
       );
 }

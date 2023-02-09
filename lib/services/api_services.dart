@@ -48,7 +48,7 @@ class APIService {
       if (kDebugMode) {
         print(e);
       }
-      return "Error generating reply: $e";
+      return "Error generating reply:";
     }
   }
 
@@ -96,13 +96,19 @@ class APIService {
     }
   }
 
-  Future<String> generateTitle(String text) async {
+  Future<String> generateTitle(String text, {bool? french}) async {
+    String inFrench = "";
+    if (french != null) {
+      if (french) {
+        inFrench = " in french,";
+      }
+    }
     try {
       Response response = await Dio().post(
         'https://api.openai.com/v1/completions',
         data: {
           "prompt":
-              "in a phrase less than five words, just give a topic only, to this message : $text",
+              "in a phrase less than five words, just give a topic only,$inFrench to this message : $text",
           "temperature": 0.8,
           "max_tokens": 20,
           "model": "text-curie-001",

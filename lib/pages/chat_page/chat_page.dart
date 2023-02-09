@@ -1,8 +1,11 @@
 import 'dart:async';
 
+import 'package:ai_pastor/pages/onboarding/slides/donation.dart';
 import 'package:ai_pastor/provider/selection_provider.dart';
+import 'package:ai_pastor/utils/translate.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:avatar_glow/avatar_glow.dart';
+import 'package:clipboard/clipboard.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
@@ -13,6 +16,8 @@ import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:new_version/new_version.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
+import '../../models/menu_item.dart';
 import '../../utils/utils.dart';
 import '/pages/chats_list_page/chats_list_page.dart';
 import '/services/isar_services.dart';
@@ -29,9 +34,9 @@ import '../components/drawer_menu.dart';
 
 // ignore: must_be_immutable
 class ChatPage extends StatefulWidget {
-  ChatPage({this.rateMyApp, this.chatDetails, super.key});
+  ChatPage({required this.rateMyApp, this.chatDetails, super.key});
 
-  final RateMyApp? rateMyApp;
+  final RateMyApp rateMyApp;
   ChatDetails? chatDetails;
 
   @override
@@ -46,7 +51,6 @@ class _ChatPageState extends State<ChatPage> {
   String _generatedText = '';
   final APIService _apiServices = APIService();
   bool _isListening = false; // Listening to the mic
-  //bool _isPlaying = false; // Playing the Message
   bool _apiProcess = false;
   bool _autoPlay = true; // Automatically play AI responses
   List<Message> messages = [];
@@ -61,18 +65,24 @@ class _ChatPageState extends State<ChatPage> {
   late Chat? chat;
   late SelectionProvider _selectionProvider;
 
+  MenuItem itemCopy = MenuItem(text: 'Copy', icon: Icons.copy);
+  MenuItem itemShare = MenuItem(text: 'Share', icon: Icons.share);
+
+  List<MenuItem> itemList = [];
+
   @override
   void initState() {
     super.initState();
     initTts();
-    initChat();
 
     _selectionProvider = Provider.of<SelectionProvider>(context, listen: false);
     _selectionProvider.init();
     if (maj) {
       _checkVersion();
     }
+    initChat();
     //WidgetsBinding.instance.addPostFrameCallback((_) => firstVisit());
+
     WidgetsBinding.instance.addPostFrameCallback((_) => rateMyAppCheck());
     if (kDebugMode) {
       print('LOG: DATETIME NOW ${DateTime.now()}');
@@ -133,18 +143,35 @@ class _ChatPageState extends State<ChatPage> {
     } else {
       messages.add(
         Message(
-          text: "Hello, how can I help you?",
+          text: t(context).hello,
           date: DateTime.now(),
           isSender: false,
         ),
       );
-
-      widget.chatDetails =
-          ChatDetails(title: 'New Discussion', date: DateTime.now());
-      chat = Chat()
-        ..details.value = widget.chatDetails
-        ..messages.addAll(messages);
     }
+    WidgetsBinding.instance.addPostFrameCallback((_) => initChatWithContext());
+    setState(() {});
+    int launchCount = await LocalServices.getLaunchCount();
+    if (launchCount % 1 == 0) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => Donation(slideNumber: 3, donatePageOnly: true),
+        ),
+      );
+    }
+  }
+
+  initChatWithContext() {
+    widget.chatDetails =
+        ChatDetails(title: t(context).newDiscussion, date: DateTime.now());
+    chat = Chat()
+      ..details.value = widget.chatDetails
+      ..messages.addAll(messages);
+
+    itemCopy.text = t(context).copy;
+    itemShare.text = t(context).share;
+    itemList.addAll([itemCopy, itemShare]);
     setState(() {});
   }
 
@@ -152,7 +179,9 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return Stack(children: [
       AdvancedDrawer(
-        drawer: const DrawerMenu(),
+        drawer: DrawerMenu(
+          rateMyApp: widget.rateMyApp,
+        ),
         controller: _advancedDrawerController,
         animationCurve: Curves.easeInOut,
         animationDuration: const Duration(milliseconds: 300),
@@ -167,7 +196,7 @@ class _ChatPageState extends State<ChatPage> {
 
             if (isExitWarning) {
               Fluttertoast.showToast(
-                msg: "Press again to exit",
+                msg: t(context).pressToExit,
                 fontSize: 18,
               );
               return false;
@@ -180,74 +209,77 @@ class _ChatPageState extends State<ChatPage> {
             onTap: () => FocusScope.of(context).unfocus(),
             child: Scaffold(
               appBar: buildAppBar(),
+              //backgroundColor: kContentColorLightTheme,
               body: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Expanded(
-                        child: GroupedListView<Message, DateTime>(
-                      padding: const EdgeInsets.all(8),
-                      reverse: true,
-                      order: GroupedListOrder.DESC,
-                      useStickyGroupSeparators: true,
-                      floatingHeader: true,
-                      elements: messages,
-                      groupBy: (message) => DateTime(
-                        message.date.year,
-                        message.date.month,
-                        message.date.day,
-                      ),
-                      groupHeaderBuilder: (Message message) => SizedBox(
-                        height: 40,
-                        child: Center(
-                          child: Card(
-                            color: Theme.of(context).primaryColor,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8),
-                              child: Text(
-                                DateFormat.yMMMd()
-                                    .format(message.date)
-                                    .toUpperCase(),
-                                style: const TextStyle(color: Colors.white),
+                      child: GroupedListView<Message, DateTime>(
+                        padding: const EdgeInsets.all(8),
+                        reverse: true,
+                        order: GroupedListOrder.DESC,
+                        useStickyGroupSeparators: true,
+                        floatingHeader: true,
+                        elements: messages,
+                        groupBy: (message) => DateTime(
+                          message.date.year,
+                          message.date.month,
+                          message.date.day,
+                        ),
+                        groupHeaderBuilder: (Message message) => SizedBox(
+                          height: 40,
+                          child: Center(
+                            child: Card(
+                              color: Theme.of(context).primaryColor,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8),
+                                child: Text(
+                                  DateFormat.yMMMd()
+                                      .format(message.date)
+                                      .toUpperCase(),
+                                  style: const TextStyle(color: Colors.white),
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                      itemBuilder: (context, Message message) => Align(
-                        alignment: !message.isSender
-                            ? Alignment.centerLeft
-                            : Alignment.centerRight,
-                        child: GestureDetector(
-                          // onLongPress: () {
-                          //   setState(() {
-                          //     _selectionProvider.selectionMode =
-                          //         !_selectionProvider.selectionMode;
-                          //     if (_selectionProvider.selectionMode) {
-                          //       _selectionProvider.addOrRemoveMessage(message);
-                          //     }
-                          //   });
-                          // },
-                          // onTap: () {
-                          //   if (_selectionProvider.selectionMode) {
-                          //     _selectionProvider.addOrRemoveMessage(message);
-                          //     setState(() {});
-                          //   } else {
-                          //     // Navigator.push(
-                          //     //   context,
-                          //     //   MaterialPageRoute(
-                          //     //     builder: (context) => ChatPage(
-                          //     //       chatDetails: chatDetails,
-                          //     //     ),
-                          //     //   ),
-                          //     // );
-                          //   }
-                          // },
-                          child: _messageCard(message),
+                        itemBuilder: (context, Message message) => Align(
+                          alignment: !message.isSender
+                              ? Alignment.centerLeft
+                              : Alignment.centerRight,
+                          child: GestureDetector(
+                            onLongPress: () {
+                              setState(() {
+                                _selectionProvider.selectionMode =
+                                    !_selectionProvider.selectionMode;
+                                if (_selectionProvider.selectionMode) {
+                                  _selectionProvider
+                                      .addOrRemoveMessage(message);
+                                }
+                              });
+                            },
+                            onTap: () {
+                              if (_selectionProvider.selectionMode) {
+                                _selectionProvider.addOrRemoveMessage(message);
+                                setState(() {});
+                              } else {
+                                // Navigator.push(
+                                //   context,
+                                //   MaterialPageRoute(
+                                //     builder: (context) => ChatPage(
+                                //       chatDetails: chatDetails,
+                                //     ),
+                                //   ),
+                                // );
+                              }
+                            },
+                            child: _messageCard(message),
+                          ),
                         ),
                       ),
-                    )),
+                    ),
                     Align(
                       alignment: Alignment.center,
                       child: Visibility(
@@ -358,28 +390,6 @@ class _ChatPageState extends State<ChatPage> {
                   ],
                 ),
               ),
-              // floatingActionButton: FloatingActionButton(
-              //   backgroundColor: kPrimaryColor,
-              //   onPressed: () {},
-              //   child: AvatarGlow(
-              //     animate: _isListening,
-              //     endRadius: _isListening ? 75 : 20,
-              //     child: TextButton(
-              //         onPressed: () {
-              //           _toggleRecording();
-              //         },
-              //         child: _isListening
-              //             ? const Icon(
-              //                 Icons.stop_circle,
-              //                 color: Colors.red,
-              //               )
-              //             : const Icon(
-              //                 Icons.mic,
-              //                 color: Colors.white,
-              //               )),
-              //   ),
-              // ),
-              // floatingActionButtonLocation: FloatingActionButtonLocation.miniEndDocked,
             ),
           ),
         ),
@@ -394,7 +404,6 @@ class _ChatPageState extends State<ChatPage> {
   AppBar buildAppBar() {
     return AppBar(
       automaticallyImplyLeading: false,
-
       title: _selectionProvider.selectionMode
           ? Text(_selectionProvider.messages.length.toString())
           : InkWell(
@@ -402,8 +411,6 @@ class _ChatPageState extends State<ChatPage> {
                 changeTitle();
               },
               child: Row(
-                //crossAxisAlignment: CrossAxisAlignment.center,
-                //mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   BounceInDown(
                     child: const CircleAvatar(
@@ -417,13 +424,13 @@ class _ChatPageState extends State<ChatPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            "Pastor Jacob", // AI Pastor
-                            style: TextStyle(fontSize: 16, color: Colors.white),
+                          Text(
+                            t(context).pastorJacob, // AI Pastor
+                            style: const TextStyle(
+                                fontSize: 16, color: Colors.white),
                           ),
                           Text(
                             widget.chatDetails?.title ?? '',
-                            //"Active 3m ago",
                             style: const TextStyle(
                               fontSize: 12,
                               color: Colors.white,
@@ -450,23 +457,32 @@ class _ChatPageState extends State<ChatPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const ChatsListPage(),
+                    builder: (context) =>
+                        ChatsListPage(rateMyApp: widget.rateMyApp),
                   ),
                 );
               },
-            ), //BackButton(),
+            ),
       actions: [
         if (_selectionProvider.selectionMode)
           IconButton(
-            tooltip: "Delete selected messages",
+            tooltip: t(context).deleteMessages,
             onPressed: () => _deleteButton(),
             icon: const Icon(Icons.delete),
+          ),
+        if (_selectionProvider.selectionMode &&
+            _selectionProvider.messages.length == 1)
+          PopupMenuButton<MenuItem>(
+            onSelected: (item) => _shareItemSelected(context, item),
+            itemBuilder: (context) =>
+                [...itemList.map(_buildShareItems).toList()],
+            child: const Icon(Icons.ios_share),
           ),
         IconButton(
           icon: _autoPlay
               ? const Icon(Icons.volume_up)
               : const Icon(Icons.volume_off),
-          tooltip: "Turn off the voice",
+          tooltip: t(context).voiceOff,
           onPressed: () {
             setState(() {
               _autoPlay = !_autoPlay;
@@ -526,7 +542,15 @@ class _ChatPageState extends State<ChatPage> {
     await _flutterTts.setVolume(1);
     await _flutterTts.setSpeechRate(0.5);
     await _flutterTts.setPitch(0.61);
-    await _flutterTts.setLanguage("en-US");
+    Locale _locale = Localizations.localeOf(context);
+    String _languageCode = _locale.languageCode;
+    print(_locale.languageCode);
+    if (_languageCode == "fr") {
+      await _flutterTts.setLanguage("fr-FR");
+    } else {
+      await _flutterTts.setLanguage("en-US");
+    }
+
     final voices = await _flutterTts.getVoices;
     if (kDebugMode) {
       print("LOG AVAILABLE VOICES : $voices");
@@ -564,17 +588,14 @@ class _ChatPageState extends State<ChatPage> {
 
   void rateMyAppCheck() {
     Future.delayed(const Duration(seconds: 15), () {
-      if (widget.rateMyApp != null) {
-        if (widget.rateMyApp!.shouldOpenDialog) {
-          widget.rateMyApp!.showStarRateDialog(
-            context,
-            title: "Your opinion on the app",
-            message:
-                "Please give us your feedback on the app, to help us improve our services.",
-            starRatingOptions: const StarRatingOptions(initialRating: 4),
-            actionsBuilder: actionsBuilder,
-          );
-        }
+      if (widget.rateMyApp.shouldOpenDialog) {
+        widget.rateMyApp.showStarRateDialog(
+          context,
+          title: t(context).rateTheApp,
+          message: t(context).rateAppMessage,
+          starRatingOptions: const StarRatingOptions(initialRating: 4),
+          actionsBuilder: actionsBuilder,
+        );
       }
     });
   }
@@ -592,51 +613,46 @@ class _ChatPageState extends State<ChatPage> {
         onPressed: () async {
           if (stars != null) {
             if (stars >= 4) {
-              widget.rateMyApp!.launchStore();
+              widget.rateMyApp.launchStore();
             }
             const event = RateMyAppEventType.rateButtonPressed;
-            await widget.rateMyApp!.callEvent(event);
+            await widget.rateMyApp.callEvent(event);
             Fluttertoast.showToast(
-              msg: "Thanks for your review!",
+              msg: t(context).thanksForRating,
             );
             _popWindow();
           }
         },
-        child: const Text(
-          "OK",
-          style: TextStyle(fontWeight: FontWeight.bold),
+        child: Text(
+          t(context).ok,
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       );
 
   Widget _buildLaterButton() => TextButton(
         onPressed: () async {
           const event = RateMyAppEventType.laterButtonPressed;
-          await widget.rateMyApp!.callEvent(event);
+          await widget.rateMyApp.callEvent(event);
 
           _popWindow();
         },
-        child: const Text(
-          "LATER",
-          style: TextStyle(fontWeight: FontWeight.bold),
+        child: Text(
+          t(context).later,
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       );
 
   Widget _buildCancelButton() => TextButton(
         onPressed: () async {
           const event = RateMyAppEventType.noButtonPressed;
-          await widget.rateMyApp!.callEvent(event);
+          await widget.rateMyApp.callEvent(event);
           _popWindow();
         },
-        child: const Text(
-          "CANCEL",
-          style: TextStyle(fontWeight: FontWeight.bold),
+        child: Text(
+          t(context).cancel,
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       );
-
-  // RateMyAppNoButton(
-  //       widget.rateMyApp!,
-  //       text: AppLocalizations.of(context)!.cancel,
-  //     );
 
   Future<bool> checkConnection() async {
     connexion = await LocalServices.hasInternet();
@@ -656,10 +672,10 @@ class _ChatPageState extends State<ChatPage> {
             newVersion.showUpdateDialog(
               context: context,
               versionStatus: value!,
-              dialogText: "A new version of the app is available!",
-              dialogTitle: "Update Available",
-              dismissButtonText: "LATER",
-              updateButtonText: "UPDATE",
+              dialogText: t(context).updateText,
+              dialogTitle: t(context).updateAvailable,
+              dismissButtonText: t(context).later,
+              updateButtonText: t(context).update,
             );
           }
         });
@@ -702,8 +718,15 @@ class _ChatPageState extends State<ChatPage> {
       ..date = DateTime.now()
       ..lastMessage = message.text;
     if (messages.length == 2) {
+      Locale _locale = Localizations.localeOf(context);
+      String _languageCode = _locale.languageCode;
+      bool french = false;
+      print(_locale.languageCode);
+      if (_languageCode == "fr") {
+        french = true;
+      }
       widget.chatDetails!.title =
-          await _apiServices.generateTitle(message.text);
+          await _apiServices.generateTitle(message.text, french: french);
     }
 
     chat!.details.value = widget.chatDetails;
@@ -743,13 +766,13 @@ class _ChatPageState extends State<ChatPage> {
   _deleteButton() {
     Utils.showMessage(
       context,
-      "Delete",
-      "Are you sure you want to remove all these messages?",
-      "NO",
+      t(context).delete,
+      t(context).deleteMessagesConfirmation,
+      t(context).no,
       () {
         _popWindow();
       },
-      buttonText2: "YES",
+      buttonText2: t(context).yes,
       onPressed2: () {
         _selectionProvider.deleteMessages();
         setState(() {});
@@ -815,7 +838,9 @@ class _ChatPageState extends State<ChatPage> {
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Card(
+          color: Colors.transparent,
           child: Container(
+            //color: Colors.transparent,
             padding: const EdgeInsets.symmetric(
               horizontal: kDefaultPadding * 0.75,
               vertical: kDefaultPadding / 2,
@@ -875,9 +900,9 @@ class _ChatPageState extends State<ChatPage> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: const Text(
-              "Change Title",
-              style: TextStyle(
+            title: Text(
+              t(context).changeTitle,
+              style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 //color: PremStyle.primary.shade900,
               ),
@@ -892,7 +917,13 @@ class _ChatPageState extends State<ChatPage> {
                   //return
                   _popWindow();
                 },
-                child: const Text("CANCEL"),
+                child: Text(
+                  t(context).cancel.toUpperCase(),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    //color: PremStyle.primary.shade900,
+                  ),
+                ),
               ),
               TextButton(
                 onPressed: () async {
@@ -905,10 +936,38 @@ class _ChatPageState extends State<ChatPage> {
 
                   _popWindow();
                 },
-                child: const Text("CONFIRM"),
+                child: Text(
+                  t(context).ok.toUpperCase(),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    //color: PremStyle.primary.shade900,
+                  ),
+                ),
               )
             ],
           );
         });
+  }
+
+  PopupMenuItem<MenuItem> _buildShareItems(MenuItem item) {
+    return PopupMenuItem<MenuItem>(
+        value: item,
+        child: Row(
+          children: [
+            Icon(item.icon),
+            const SizedBox(width: 12),
+            Text(item.text),
+          ],
+        ));
+  }
+
+  _shareItemSelected(BuildContext context, MenuItem item) {
+    if (item == itemCopy) {
+      FlutterClipboard.copy(_selectionProvider.messages.first.text)
+          .then((value) => Fluttertoast.showToast(msg: t(context).copied));
+    } else if (item == itemShare) {
+      Share.share(
+          "${_selectionProvider.messages.first.text} \n https://play.google.com/store/apps/details?id=$playStoreId");
+    }
   }
 }

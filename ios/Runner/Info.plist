@@ -53,5 +53,10 @@
 	<string>This application needs the speech recognition permission</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>This application needs the speech recognition permission</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+  		<string>https</string>
+  		<string>http</string>
+	</array>
 </dict>
 </plist>

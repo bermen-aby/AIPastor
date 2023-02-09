@@ -1,3 +1,4 @@
+import 'package:ai_pastor/constants.dart';
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 
 //import 'constants.dart';
@@ -10,20 +11,21 @@ import 'package:google_fonts/google_fonts.dart';
 
 ThemeData lightThemeData(BuildContext context) {
   return FlexThemeData.light(
-    scheme: FlexScheme.bahamaBlue,
-    surfaceMode: FlexSurfaceMode.levelSurfacesLowScaffold,
-    blendLevel: 9,
-    subThemesData: const FlexSubThemesData(
-      blendOnLevel: 10,
-      blendOnColors: false,
-      appBarBackgroundSchemeColor: SchemeColor.inversePrimary,
-    ),
-    visualDensity: FlexColorScheme.comfortablePlatformDensity,
-    useMaterial3: true,
-    swapLegacyOnMaterial3: true,
-    // To use the playground font, add GoogleFonts package and uncomment
-    fontFamily: GoogleFonts.notoSans().fontFamily,
-  );
+      scheme: FlexScheme.bahamaBlue,
+      surfaceMode: FlexSurfaceMode.levelSurfacesLowScaffold,
+      blendLevel: 9,
+      subThemesData: const FlexSubThemesData(
+        blendOnLevel: 10,
+        blendOnColors: false,
+        appBarBackgroundSchemeColor: SchemeColor.inversePrimary,
+      ),
+      visualDensity: FlexColorScheme.comfortablePlatformDensity,
+      useMaterial3: true,
+      swapLegacyOnMaterial3: true,
+      // To use the playground font, add GoogleFonts package and uncomment
+      fontFamily: GoogleFonts.notoSans().fontFamily,
+      //background: kContentColorLightTheme,
+      scaffoldBackground: kScaffoldBackgroundColorLight);
 
   // ThemeData.light().copyWith(
   //   useMaterial3: true,
@@ -64,6 +66,7 @@ ThemeData darkThemeData(BuildContext context) {
     swapLegacyOnMaterial3: true,
     // To use the Playground font, add GoogleFonts package and uncomment
     fontFamily: GoogleFonts.notoSans().fontFamily,
+    background: kContentColorDarkTheme,
   );
 
   // ThemeData.dark().copyWith(

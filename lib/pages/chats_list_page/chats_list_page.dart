@@ -4,9 +4,12 @@ import 'package:ai_pastor/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
 import 'package:grouped_list/grouped_list.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
+import 'package:rate_my_app/rate_my_app.dart';
 import '../../services/isar_services.dart';
 import '../../utils/dissmissible_widget.dart';
+import '../../utils/translate.dart';
 import '/pages/chat_page/chat_page.dart';
 
 import '../../constants.dart';
@@ -14,7 +17,8 @@ import '../components/drawer_menu.dart';
 import 'components/chat_card.dart';
 
 class ChatsListPage extends StatefulWidget {
-  const ChatsListPage({Key? key}) : super(key: key);
+  const ChatsListPage({Key? key, required this.rateMyApp}) : super(key: key);
+  final RateMyApp rateMyApp;
 
   @override
   State<ChatsListPage> createState() => _ChatsListPageState();
@@ -37,7 +41,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
   @override
   Widget build(BuildContext context) {
     return AdvancedDrawer(
-      drawer: const DrawerMenu(),
+      drawer: DrawerMenu(rateMyApp: widget.rateMyApp),
       controller: _advancedDrawerController,
       animationCurve: Curves.easeInOut,
       animationDuration: const Duration(milliseconds: 300),
@@ -52,7 +56,9 @@ class _ChatsListPageState extends State<ChatsListPage> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => ChatPage(),
+                builder: (context) => ChatPage(
+                  rateMyApp: widget.rateMyApp,
+                ),
               ),
             );
           },
@@ -113,71 +119,77 @@ class _ChatsListPageState extends State<ChatsListPage> {
             future: _isarServices.getAllChatSmall(),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
-                return GroupedListView<ChatDetails, DateTime>(
-                  padding: const EdgeInsets.all(8),
-                  reverse: true,
-                  order: GroupedListOrder.ASC,
-                  useStickyGroupSeparators: true,
-                  shrinkWrap: true,
-                  groupHeaderBuilder: (element) => const SizedBox(),
-                  elements: snapshot.data as List<ChatDetails>,
-                  groupBy: (chatSmall) => DateTime(
-                    chatSmall.date.year,
-                    chatSmall.date.month,
-                    chatSmall.date.day,
-                  ),
-                  itemBuilder: (context, ChatDetails chatDetails) {
-                    if (_newChatDetails != null) {
-                      if (_newChatDetails!.id == chatDetails.id) {
-                        setState(() {
-                          chatDetails = _newChatDetails!;
-                        });
-                      }
-                    }
-                    return DissmissibleWidget(
-                      key: Key(chatDetails.id.toString()),
-                      item: chatDetails,
-                      onDismissed: (direction) async {
-                        await _isarServices.removeChatFromDetails(chatDetails);
-                        setState(() {
-                          snapshot.data!.remove(chatDetails);
-                        });
-                      },
-                      child: ChatCard(
-                        chat: chatDetails,
-                        longPress: () {
+                if (snapshot.data!.isEmpty) {
+                  _empty();
+                } else {
+                  return GroupedListView<ChatDetails, DateTime>(
+                    padding: const EdgeInsets.all(8),
+                    reverse: true,
+                    order: GroupedListOrder.ASC,
+                    useStickyGroupSeparators: true,
+                    shrinkWrap: true,
+                    groupHeaderBuilder: (element) => const SizedBox(),
+                    elements: snapshot.data as List<ChatDetails>,
+                    groupBy: (chatSmall) => DateTime(
+                      chatSmall.date.year,
+                      chatSmall.date.month,
+                      chatSmall.date.day,
+                    ),
+                    itemBuilder: (context, ChatDetails chatDetails) {
+                      if (_newChatDetails != null) {
+                        if (_newChatDetails!.id == chatDetails.id) {
                           setState(() {
-                            _selectionProvider.selectionMode =
-                                !_selectionProvider.selectionMode;
+                            chatDetails = _newChatDetails!;
+                          });
+                        }
+                      }
+                      return DissmissibleWidget(
+                        key: Key(chatDetails.id.toString()),
+                        item: chatDetails,
+                        onDismissed: (direction) async {
+                          await _isarServices
+                              .removeChatFromDetails(chatDetails);
+                          setState(() {
+                            snapshot.data!.remove(chatDetails);
+                          });
+                        },
+                        child: ChatCard(
+                          chat: chatDetails,
+                          longPress: () {
+                            setState(() {
+                              _selectionProvider.selectionMode =
+                                  !_selectionProvider.selectionMode;
+                              if (_selectionProvider.selectionMode) {
+                                _selectionProvider
+                                    .addOrRemoveChatDetails(chatDetails);
+                              }
+                            });
+                          },
+                          press: () {
                             if (_selectionProvider.selectionMode) {
                               _selectionProvider
                                   .addOrRemoveChatDetails(chatDetails);
-                            }
-                          });
-                        },
-                        press: () {
-                          if (_selectionProvider.selectionMode) {
-                            _selectionProvider
-                                .addOrRemoveChatDetails(chatDetails);
-                            setState(() {});
-                          } else {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ChatPage(
-                                  chatDetails: chatDetails,
+                              setState(() {});
+                            } else {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ChatPage(
+                                    chatDetails: chatDetails,
+                                    rateMyApp: widget.rateMyApp,
+                                  ),
                                 ),
-                              ),
-                            );
-                          }
-                        },
-                      ),
-                    );
-                  },
-                );
+                              );
+                            }
+                          },
+                        ),
+                      );
+                    },
+                  );
+                }
               }
 
-              return const Text("No Chat yet!");
+              return _empty();
             },
           ),
         ),
@@ -210,9 +222,9 @@ class _ChatsListPageState extends State<ChatsListPage> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: const Text(
-              "Change Title",
-              style: TextStyle(
+            title: Text(
+              t(context).changeTitle.toUpperCase(),
+              style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 //color: PremStyle.primary.shade900,
               ),
@@ -227,7 +239,13 @@ class _ChatsListPageState extends State<ChatsListPage> {
                   //return
                   _popWindow();
                 },
-                child: const Text("CANCEL"),
+                child: Text(
+                  t(context).cancel.toUpperCase(),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    //color: PremStyle.primary.shade900,
+                  ),
+                ),
               ),
               TextButton(
                 onPressed: () async {
@@ -243,11 +261,23 @@ class _ChatsListPageState extends State<ChatsListPage> {
 
                   _popWindow();
                 },
-                child: const Text("CONFIRM"),
+                child: Text(
+                  t(context).ok.toUpperCase(),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    //color: PremStyle.primary.shade900,
+                  ),
+                ),
               )
             ],
           );
         });
+  }
+
+  Widget _empty() {
+    return Center(
+      child: Lottie.asset("assets/lottie/empty.json"),
+    );
   }
 
   _popWindow() {
