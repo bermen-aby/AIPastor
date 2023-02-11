@@ -2,12 +2,14 @@ import 'dart:async';
 
 import 'package:ai_pastor/pages/onboarding/slides/donation.dart';
 import 'package:ai_pastor/provider/selection_provider.dart';
+import 'package:ai_pastor/provider/theme_provider.dart';
 import 'package:ai_pastor/utils/translate.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:clipboard/clipboard.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -151,18 +153,9 @@ class _ChatPageState extends State<ChatPage> {
     }
     WidgetsBinding.instance.addPostFrameCallback((_) => initChatWithContext());
     setState(() {});
-    int launchCount = await LocalServices.getLaunchCount();
-    if (launchCount % 1 == 0) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => Donation(slideNumber: 3, donatePageOnly: true),
-        ),
-      );
-    }
   }
 
-  initChatWithContext() {
+  initChatWithContext() async {
     widget.chatDetails =
         ChatDetails(title: t(context).newDiscussion, date: DateTime.now());
     chat = Chat()
@@ -173,6 +166,18 @@ class _ChatPageState extends State<ChatPage> {
     itemShare.text = t(context).share;
     itemList.addAll([itemCopy, itemShare]);
     setState(() {});
+    int launchCount = await LocalServices.getLaunchCount();
+    if (launchCount % 1 == 0) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => Donation(slideNumber: 3, donatePageOnly: true),
+        ),
+      );
+    }
+    // final theme = Provider.of<ThemeProvider>(context, listen: false);
+    // SystemChrome.setSystemUIOverlayStyle(
+    //     theme.isDarkMode ? darkOverlayStyle : lightOverlayStyle);
   }
 
   @override
@@ -464,12 +469,12 @@ class _ChatPageState extends State<ChatPage> {
               },
             ),
       actions: [
-        if (_selectionProvider.selectionMode)
-          IconButton(
-            tooltip: t(context).deleteMessages,
-            onPressed: () => _deleteButton(),
-            icon: const Icon(Icons.delete),
-          ),
+        // if (_selectionProvider.selectionMode)
+        //   IconButton(
+        //     tooltip: t(context).deleteMessages,
+        //     onPressed: () => _deleteButton(),
+        //     icon: const Icon(Icons.delete),
+        //   ),
         if (_selectionProvider.selectionMode &&
             _selectionProvider.messages.length == 1)
           PopupMenuButton<MenuItem>(
@@ -624,7 +629,7 @@ class _ChatPageState extends State<ChatPage> {
           }
         },
         child: Text(
-          t(context).ok,
+          t(context).ok.toUpperCase(),
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       );
@@ -637,7 +642,7 @@ class _ChatPageState extends State<ChatPage> {
           _popWindow();
         },
         child: Text(
-          t(context).later,
+          t(context).later.toUpperCase(),
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       );
@@ -649,7 +654,7 @@ class _ChatPageState extends State<ChatPage> {
           _popWindow();
         },
         child: Text(
-          t(context).cancel,
+          t(context).cancel.toUpperCase(),
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       );
@@ -713,7 +718,10 @@ class _ChatPageState extends State<ChatPage> {
       _promptController.clear();
       _apiProcess = true;
     });
-
+    if (widget.chatDetails == null) {
+      widget.chatDetails =
+          ChatDetails(title: t(context).newDiscussion, date: DateTime.now());
+    }
     widget.chatDetails!
       ..date = DateTime.now()
       ..lastMessage = message.text;
@@ -895,6 +903,10 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void changeTitle() {
+    if (widget.chatDetails == null) {
+      widget.chatDetails =
+          ChatDetails(title: t(context).newDiscussion, date: DateTime.now());
+    }
     _titleController.text = widget.chatDetails!.title;
     showDialog(
         context: context,

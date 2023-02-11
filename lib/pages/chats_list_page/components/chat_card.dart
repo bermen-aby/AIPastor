@@ -1,4 +1,5 @@
 import 'package:ai_pastor/provider/selection_provider.dart';
+import 'package:ai_pastor/provider/theme_provider.dart';
 import 'package:ai_pastor/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -24,6 +25,38 @@ class ChatCard extends StatefulWidget {
 }
 
 class _ChatCardState extends State<ChatCard> {
+  final titleLight = const TextStyle(
+    color: kPrimaryColor,
+    fontWeight: FontWeight.w800,
+    overflow: TextOverflow.ellipsis,
+    fontSize: 17,
+  );
+  final titleDark = const TextStyle(
+    color: Colors.white,
+    fontWeight: FontWeight.w800,
+    overflow: TextOverflow.ellipsis,
+    fontSize: 17,
+  );
+  final lastMsgLight = const TextStyle(
+    color: Colors.black,
+    fontWeight: FontWeight.w500,
+    fontSize: 14,
+  );
+  final lastMsgDark = const TextStyle(
+    color: Colors.white,
+    fontWeight: FontWeight.w500,
+    fontSize: 14,
+  );
+  final dateLight = const TextStyle(
+    color: Colors.black,
+    //fontWeight: FontWeight.w500,
+    //fontSize: 22,
+  );
+  final dateDark = const TextStyle(
+    color: Colors.white,
+    // fontWeight: FontWeight.w500,
+    // fontSize: 22,
+  );
   late SelectionProvider _selectionProvider;
   @override
   void initState() {
@@ -33,6 +66,10 @@ class _ChatCardState extends State<ChatCard> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Provider.of<ThemeProvider>(context, listen: false);
+    final title = theme.isDarkMode ? titleDark : titleLight;
+    final lastMsg = theme.isDarkMode ? lastMsgDark : lastMsgLight;
+    final timeTxt = theme.isDarkMode ? dateDark : dateLight;
     return GestureDetector(
       onTap: widget.press,
       onLongPress: widget.longPress,
@@ -45,7 +82,7 @@ class _ChatCardState extends State<ChatCard> {
           padding: const EdgeInsets.symmetric(
               horizontal: kDefaultPadding, vertical: kDefaultPadding * 0.75),
           child: SizedBox(
-            height: 90,
+            height: 100,
             //alignment: Alignment.centerLeft,
             child: Column(
               children: [
@@ -54,14 +91,13 @@ class _ChatCardState extends State<ChatCard> {
                   child: Text(
                     widget.chat.title,
                     maxLines: 1,
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                      overflow: TextOverflow.ellipsis,
-                      color: _selectionProvider.containsChatDetails(widget.chat)
-                          ? kPrimaryColor
-                          : Colors.white,
-                    ),
+                    style: _selectionProvider.containsChatDetails(widget.chat)
+                        ? const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                            overflow: TextOverflow.ellipsis,
+                            color: kPrimaryColor)
+                        : title,
                   ),
                 ),
                 const SizedBox(
@@ -69,16 +105,12 @@ class _ChatCardState extends State<ChatCard> {
                 ),
                 Opacity(
                   opacity: 0.90,
-                  child: Text(
-                    Utils().removeEmptyLines(widget.chat.lastMessage),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: _selectionProvider.containsChatDetails(widget.chat)
-                          ? kPrimaryColor
-                          : Colors.white,
-                    ),
-                  ),
+                  child: Text(Utils().removeEmptyLines(widget.chat.lastMessage),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: _selectionProvider.containsChatDetails(widget.chat)
+                          ? const TextStyle(color: kPrimaryColor)
+                          : lastMsg),
                 ),
                 const Spacer(),
                 Align(
@@ -89,12 +121,9 @@ class _ChatCardState extends State<ChatCard> {
                       widget.chat.date.year == DateTime.now().year
                           ? DateFormat.MMMd().format(widget.chat.date)
                           : DateFormat.yMMMd().format(widget.chat.date),
-                      style: TextStyle(
-                        color:
-                            _selectionProvider.containsChatDetails(widget.chat)
-                                ? kPrimaryColor
-                                : Colors.white,
-                      ),
+                      style: _selectionProvider.containsChatDetails(widget.chat)
+                          ? const TextStyle(color: kPrimaryColor)
+                          : timeTxt,
                     ),
                   ),
                 )

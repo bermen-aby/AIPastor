@@ -97,18 +97,19 @@ class APIService {
   }
 
   Future<String> generateTitle(String text, {bool? french}) async {
-    String inFrench = "";
+    bool inFrench = false;
     if (french != null) {
       if (french) {
-        inFrench = " in french,";
+        inFrench = true;
       }
     }
     try {
       Response response = await Dio().post(
         'https://api.openai.com/v1/completions',
         data: {
-          "prompt":
-              "in a phrase less than five words, just give a topic only,$inFrench to this message : $text",
+          "prompt": inFrench
+              ? "En une phrase de moins de 5 mots, donne un titre à ce message, qui servira de sujet pour toute une conversation : $text ?"
+              : "In a sentence of less than 5 words, give a title to this message, which will serve as a topic for an entire conversation : $text ?",
           "temperature": 0.8,
           "max_tokens": 20,
           "model": "text-curie-001",

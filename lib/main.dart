@@ -65,10 +65,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = ThemeProvider();
     return ChangeNotifierProvider(
       create: (context) {
-        final themeProvider = ThemeProvider();
-
         if (!isDarkMode) {
           themeProvider.toggleTheme(false);
         } else {
@@ -77,8 +76,8 @@ class MyApp extends StatelessWidget {
         return themeProvider;
       },
       builder: (context, _) {
-        SystemChrome.setSystemUIOverlayStyle(
-            isDarkMode ? darkOverlayStyle : lightOverlayStyle);
+        // SystemChrome.setSystemUIOverlayStyle(
+        //     isDarkMode ? darkOverlayStyle : lightOverlayStyle);
 
         final themeProvider = Provider.of<ThemeProvider>(context, listen: true);
         return MultiProvider(

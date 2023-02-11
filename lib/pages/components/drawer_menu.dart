@@ -3,9 +3,12 @@ import 'package:ai_pastor/pages/onboarding/onboarding_page.dart';
 import 'package:ai_pastor/pages/onboarding/slides/donation.dart';
 import 'package:ai_pastor/pages/onboarding/slides/slides.dart';
 import 'package:ai_pastor/utils/translate.dart';
+import 'package:ai_pastor/variables.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:provider/provider.dart';
 import 'package:rate_my_app/rate_my_app.dart';
+import '../../provider/theme_provider.dart';
 import '/constants.dart';
 
 class DrawerMenu extends StatefulWidget {
@@ -16,6 +19,13 @@ class DrawerMenu extends StatefulWidget {
 }
 
 class _DrawerMenuState extends State<DrawerMenu> {
+  final textLight =
+      const TextStyle(fontWeight: FontWeight.w700, color: kPrimaryColor);
+  final textDark = const TextStyle(
+    color: Colors.white,
+    fontWeight: FontWeight.w700,
+  );
+
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -112,6 +122,7 @@ class _DrawerMenuState extends State<DrawerMenu> {
 
   Widget _buildButton(Icon icon, String title,
       {Widget? goto, Function? onTap}) {
+    final theme = Provider.of<ThemeProvider>(context, listen: false);
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: ElevatedButton(
@@ -131,7 +142,10 @@ class _DrawerMenuState extends State<DrawerMenu> {
               const SizedBox(
                 width: 10,
               ),
-              Text(title),
+              Text(
+                title,
+                style: theme.isDarkMode ? textDark : textLight,
+              ),
             ],
           )),
     );

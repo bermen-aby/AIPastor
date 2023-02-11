@@ -1,7 +1,9 @@
 import 'package:ai_pastor/models/chat_details.dart';
 import 'package:ai_pastor/provider/selection_provider.dart';
+import 'package:ai_pastor/provider/theme_provider.dart';
 import 'package:ai_pastor/utils/utils.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
 import 'package:grouped_list/grouped_list.dart';
 import 'package:lottie/lottie.dart';
@@ -36,6 +38,9 @@ class _ChatsListPageState extends State<ChatsListPage> {
     super.initState();
     _selectionProvider = Provider.of<SelectionProvider>(context, listen: false);
     _selectionProvider.init();
+    // final theme = Provider.of<ThemeProvider>(context, listen: false);
+    // SystemChrome.setSystemUIOverlayStyle(
+    //     theme.isDarkMode ? darkOverlayStyle : lightOverlayStyle);
   }
 
   @override
@@ -89,8 +94,22 @@ class _ChatsListPageState extends State<ChatsListPage> {
         children: [
           if (_selectionProvider.selectionMode)
             Text(_selectionProvider.chatsDetails.length.toString()),
-          const Expanded(
-              child: Align(alignment: Alignment.center, child: Text("Chats"))),
+          Expanded(
+            child: Align(
+              alignment: Alignment.center,
+              child: Text(
+                "Chats",
+                style: TextStyle(
+                  color: Provider.of<ThemeProvider>(context, listen: false)
+                          .isDarkMode
+                      ? Colors.white
+                      : kPrimaryColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 23.5,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
       actions: [

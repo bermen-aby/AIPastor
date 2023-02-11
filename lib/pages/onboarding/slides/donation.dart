@@ -1,6 +1,9 @@
 import 'package:ai_pastor/constants.dart';
+import 'package:ai_pastor/provider/theme_provider.dart';
+import 'package:ai_pastor/variables.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../utils/translate.dart';
 
@@ -107,11 +110,18 @@ class _DonationState extends State<Donation> {
   }
 
   Widget _laterButton() {
+    final theme = Provider.of<ThemeProvider>(context, listen: false);
     return ElevatedButton(
       onPressed: () {
         Navigator.of(context).pop();
       },
-      child: Text(t(context).later.toUpperCase()),
+      child: Text(
+        t(context).later.toUpperCase(),
+        style: TextStyle(
+          color: theme.isDarkMode ? Colors.white : kPrimaryColor,
+          fontWeight: FontWeight.w400,
+        ),
+      ),
     );
   }
 
