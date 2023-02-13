@@ -6,6 +6,7 @@ import 'package:ai_pastor/provider/theme_provider.dart';
 import 'package:ai_pastor/utils/translate.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:avatar_glow/avatar_glow.dart';
+import 'package:camera/camera.dart';
 import 'package:clipboard/clipboard.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -47,7 +48,7 @@ class ChatPage extends StatefulWidget {
 
 enum TtsState { playing, stopped }
 
-class _ChatPageState extends State<ChatPage> {
+class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
   final TextEditingController _promptController = TextEditingController();
   final TextEditingController _titleController = TextEditingController();
   String _generatedText = '';
@@ -58,6 +59,8 @@ class _ChatPageState extends State<ChatPage> {
   List<Message> messages = [];
   late FlutterTts _flutterTts;
   TtsState _ttsState = TtsState.stopped;
+
+  bool cameraGranted = false;
 
   final _advancedDrawerController = AdvancedDrawerController();
   DateTime timeBackPressed = DateTime.now();
@@ -71,6 +74,8 @@ class _ChatPageState extends State<ChatPage> {
   MenuItem itemShare = MenuItem(text: 'Share', icon: Icons.share);
 
   List<MenuItem> itemList = [];
+
+  CameraController? _cameraController;
 
   @override
   void initState() {
@@ -86,6 +91,7 @@ class _ChatPageState extends State<ChatPage> {
     //WidgetsBinding.instance.addPostFrameCallback((_) => firstVisit());
 
     WidgetsBinding.instance.addPostFrameCallback((_) => rateMyAppCheck());
+    WidgetsBinding.instance.addObserver(this);
     if (kDebugMode) {
       print('LOG: DATETIME NOW ${DateTime.now()}');
     }
@@ -95,6 +101,8 @@ class _ChatPageState extends State<ChatPage> {
   void dispose() {
     _advancedDrawerController.dispose();
     _flutterTts.stop();
+    WidgetsBinding.instance.removeObserver(this);
+    _stopCamera();
     super.dispose();
   }
 
@@ -132,6 +140,7 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   initChat() async {
+    cameraGranted = await LocalServices.requestCameraPermission();
     _autoPlay = await LocalServices.getAutoPlay();
     if (widget.chatDetails != null) {
       chat = (await _isarServices.getChat(widget.chatDetails!))!;
@@ -420,7 +429,7 @@ class _ChatPageState extends State<ChatPage> {
                   BounceInDown(
                     child: const CircleAvatar(
                       radius: 30,
-                      backgroundImage: AssetImage("assets/images/pastor.png"),
+                      backgroundImage: AssetImage("assets/images/ai.png"),
                     ),
                   ),
                   const SizedBox(width: kDefaultPadding * 0.50),
@@ -430,7 +439,7 @@ class _ChatPageState extends State<ChatPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            t(context).pastorJacob, // AI Pastor
+                            t(context).pastorJacob, // AImee
                             style: const TextStyle(
                                 fontSize: 16, color: Colors.white),
                           ),
@@ -482,6 +491,22 @@ class _ChatPageState extends State<ChatPage> {
             itemBuilder: (context) =>
                 [...itemList.map(_buildShareItems).toList()],
             child: const Icon(Icons.ios_share),
+          ),
+        if (!_selectionProvider.selectionMode)
+          IconButton(
+            icon: const Icon(Icons.scanner),
+            tooltip: t(context).voiceOff,
+            onPressed: () async {
+              cameraGranted = await LocalServices.requestCameraPermission();
+              final cameras = await availableCameras().then(
+                (value) {
+                  _initCameraController(value);
+                  return CameraPreview(_cameraController!);
+                },
+              );
+
+              setState(() {});
+            },
           ),
         IconButton(
           icon: _autoPlay
@@ -981,5 +1006,68 @@ class _ChatPageState extends State<ChatPage> {
       Share.share(
           "${_selectionProvider.messages.first.text} \n https://play.google.com/store/apps/details?id=$playStoreId");
     }
+  }
+
+  // Starts and stops the camera according to the lifecycle of the app
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (_cameraController == null || !_cameraController!.value.isInitialized) {
+      return;
+    }
+
+    if (state == AppLifecycleState.inactive) {
+      _stopCamera();
+    } else if (state == AppLifecycleState.resumed &&
+        _cameraController != null &&
+        _cameraController!.value.isInitialized) {
+      _startCamera();
+    }
+  }
+
+  void _startCamera() {
+    if (_cameraController != null) {
+      _cameraSelected(_cameraController!.description);
+    }
+  }
+
+  void _stopCamera() {
+    if (_cameraController != null) {
+      _cameraController?.dispose();
+    }
+  }
+
+  void _initCameraController(List<CameraDescription> cameras) {
+    if (_cameraController != null) {
+      return;
+    }
+
+    // Select the first rear camera.
+    CameraDescription? camera;
+    for (var i = 0; i < cameras.length; i++) {
+      final CameraDescription current = cameras[i];
+      if (current.lensDirection == CameraLensDirection.back) {
+        camera = current;
+        break;
+      }
+    }
+
+    if (camera != null) {
+      _cameraSelected(camera);
+    }
+  }
+
+  Future<void> _cameraSelected(CameraDescription camera) async {
+    _cameraController = CameraController(
+      camera,
+      ResolutionPreset.max,
+      enableAudio: false,
+    );
+
+    await _cameraController!.initialize();
+
+    if (!mounted) {
+      return;
+    }
+    setState(() {});
   }
 }

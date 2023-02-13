@@ -1,4 +1,4 @@
-package com.bermen.aipastor
+package com.mugen.aimee
 
 import io.flutter.embedding.android.FlutterActivity
 

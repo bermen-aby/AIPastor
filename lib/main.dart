@@ -1,5 +1,4 @@
 import 'package:ai_pastor/components/rate_app_init_widget.dart';
-import 'package:ai_pastor/constants.dart';
 import 'package:ai_pastor/l10n/l10n.dart';
 import 'package:ai_pastor/pages/onboarding/onboarding_page.dart';
 import 'package:ai_pastor/provider/selection_provider.dart';
@@ -10,7 +9,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '/pages/chat_page/chat_page.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -96,7 +94,7 @@ class MyApp extends StatelessWidget {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: L10n.all,
             themeMode: themeProvider.themeMode,
-            title: 'AI PASTOR',
+            title: 'AImee',
             home: //const ChatPage(),
                 JelloIn(
               child: AnimatedSplashScreen(

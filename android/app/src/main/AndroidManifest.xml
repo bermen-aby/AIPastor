@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.bermen.aipastor">
+    package="com.mugen.aimee">
 
     <queries>
         <intent>
@@ -23,9 +23,10 @@
     <uses-permission android:name="android.permission.BLUETOOTH"/>
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
+    <uses-permission android:name="android.permission.CAMERA" />
 
    <application
-        android:label="AI Pastor"
+        android:label="AImee"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

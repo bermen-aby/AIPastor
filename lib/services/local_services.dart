@@ -1,4 +1,5 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LocalServices {
@@ -128,5 +129,10 @@ class LocalServices {
     final prefs = await SharedPreferences.getInstance();
 
     return prefs.getInt('launchCount') ?? 0;
+  }
+
+  static Future<bool> requestCameraPermission() async {
+    final status = await Permission.camera.request();
+    return status == PermissionStatus.granted;
   }
 }

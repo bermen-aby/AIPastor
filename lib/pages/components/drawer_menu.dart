@@ -61,7 +61,7 @@ class _DrawerMenuState extends State<DrawerMenu> {
                         height: 15,
                       ),
                       Text(
-                        "AI PASTOR",
+                        "AImee",
                         style: textButtonStyle,
                       ),
                       Text(
