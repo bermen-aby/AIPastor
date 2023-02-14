@@ -1,7 +1,10 @@
 import 'package:ai_pastor/pages/chat_page/chat_page.dart';
 import 'package:ai_pastor/utils/translate.dart';
+import 'package:provider/provider.dart';
 
 import '../../constants.dart';
+import '../../provider/locale_provider.dart';
+import '../../services/local_services.dart';
 import '../../variables.dart';
 import 'slides/slides.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +29,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
   @override
   void initState() {
     super.initState();
+    initLocale();
     init();
   }
 
@@ -122,5 +126,19 @@ class _OnboardingPageState extends State<OnboardingPage> {
         ],
       ),
     );
+  }
+
+  Future<bool> initLocale() async {
+    final localeProvider = Provider.of<LocaleProvider>(context, listen: false);
+    await LocalServices.getLanguage().then((value) {
+      if (value != null) {
+        localeProvider.setLocale(Locale(value));
+      } else {
+        final locale = Localizations.localeOf(context);
+        //localeProvider.setLocale(locale); simplifié plus bas
+        LocalServices.setLanguage(locale.languageCode);
+      }
+    });
+    return true;
   }
 }

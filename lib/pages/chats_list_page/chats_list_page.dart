@@ -1,9 +1,7 @@
 import 'package:ai_pastor/models/chat_details.dart';
 import 'package:ai_pastor/provider/selection_provider.dart';
-import 'package:ai_pastor/provider/theme_provider.dart';
 import 'package:ai_pastor/utils/utils.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
 import 'package:grouped_list/grouped_list.dart';
 import 'package:lottie/lottie.dart';
@@ -80,6 +78,13 @@ class _ChatsListPageState extends State<ChatsListPage> {
 
   AppBar buildAppBar() {
     return AppBar(
+      flexibleSpace: Container(
+        decoration: const BoxDecoration(
+            gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: <Color>[kSecondaryColor, kPrimaryColor])),
+      ),
       automaticallyImplyLeading: false,
       leading: _selectionProvider.selectionMode
           ? IconButton(
@@ -94,16 +99,17 @@ class _ChatsListPageState extends State<ChatsListPage> {
         children: [
           if (_selectionProvider.selectionMode)
             Text(_selectionProvider.chatsDetails.length.toString()),
-          Expanded(
+          const Expanded(
             child: Align(
               alignment: Alignment.center,
               child: Text(
                 "Chats",
                 style: TextStyle(
-                  color: Provider.of<ThemeProvider>(context, listen: false)
-                          .isDarkMode
-                      ? Colors.white
-                      : kPrimaryColor,
+                  color: Colors.white,
+                  // Provider.of<ThemeProvider>(context, listen: false)
+                  //         .isDarkMode
+                  //     ? Colors.white
+                  //     : kPrimaryColor,
                   fontWeight: FontWeight.bold,
                   fontSize: 23.5,
                 ),

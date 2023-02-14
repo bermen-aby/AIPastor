@@ -1,9 +1,10 @@
+// ignore_for_file: use_build_context_synchronously
+
+import 'package:ai_pastor/pages/components/change_language_widget.dart';
 import 'package:ai_pastor/pages/components/change_theme_button_widget.dart';
 import 'package:ai_pastor/pages/onboarding/onboarding_page.dart';
 import 'package:ai_pastor/pages/onboarding/slides/donation.dart';
-import 'package:ai_pastor/pages/onboarding/slides/slides.dart';
 import 'package:ai_pastor/utils/translate.dart';
-import 'package:ai_pastor/variables.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
@@ -20,7 +21,7 @@ class DrawerMenu extends StatefulWidget {
 
 class _DrawerMenuState extends State<DrawerMenu> {
   final textLight =
-      const TextStyle(fontWeight: FontWeight.w700, color: kPrimaryColor);
+      const TextStyle(fontWeight: FontWeight.w700, color: kSecondaryColor);
   final textDark = const TextStyle(
     color: Colors.white,
     fontWeight: FontWeight.w700,
@@ -52,10 +53,11 @@ class _DrawerMenuState extends State<DrawerMenu> {
                   child: Column(
                     children: const [
                       CircleAvatar(
-                        radius: 120,
+                        radius: 110,
                         backgroundImage: AssetImage(
-                          "assets/images/pastor.png",
+                          "assets/images/ai.png",
                         ),
+                        backgroundColor: Colors.transparent,
                       ),
                       SizedBox(
                         height: 15,
@@ -64,15 +66,15 @@ class _DrawerMenuState extends State<DrawerMenu> {
                         "AImee",
                         style: textButtonStyle,
                       ),
-                      Text(
-                        "Jacob",
-                        style: textButtonStyle,
-                      ),
+                      // Text(
+                      //   "Jacob",
+                      //   style: textButtonStyle,
+                      // ),
                     ],
                   ),
                 ),
                 _buildButton(
-                  const Icon(Icons.help_outline),
+                  const Icon(Icons.help_outline, color: kSecondaryColor),
                   t(context).howItWorks,
                   onTap: () {
                     Navigator.push(
@@ -86,7 +88,8 @@ class _DrawerMenuState extends State<DrawerMenu> {
                   },
                 ),
                 _buildButton(
-                  const Icon(Icons.monetization_on_outlined),
+                  const Icon(Icons.monetization_on_outlined,
+                      color: kSecondaryColor),
                   t(context).donate,
                   onTap: () {
                     Navigator.push(
@@ -100,7 +103,11 @@ class _DrawerMenuState extends State<DrawerMenu> {
                     );
                   },
                 ),
-                _buildButton(const Icon(Icons.star_outline_outlined),
+                _buildButton(
+                    const Icon(
+                      Icons.star_outline_outlined,
+                      color: kSecondaryColor,
+                    ),
                     t(context).rateTheApp, onTap: () {
                   widget.rateMyApp.showStarRateDialog(
                     context,
@@ -111,6 +118,7 @@ class _DrawerMenuState extends State<DrawerMenu> {
                     actionsBuilder: actionsBuilder,
                   );
                 }),
+                ChangeLanguageWidget(),
                 const ChangeThemeButtonWidget(),
               ],
             ),

@@ -1,6 +1,5 @@
 import 'package:ai_pastor/constants.dart';
 import 'package:ai_pastor/provider/theme_provider.dart';
-import 'package:ai_pastor/variables.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
@@ -30,6 +29,7 @@ class _DonationState extends State<Donation> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: kPrimaryColor,
       body: SingleChildScrollView(
         child: Container(
           color: kPrimaryColor,

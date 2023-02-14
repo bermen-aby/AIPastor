@@ -6,7 +6,7 @@ class RateDialogPage extends StatefulWidget {
   final RateMyApp rateMyApp;
 
   @override
-  _RateDialogPageState createState() => _RateDialogPageState();
+  State<RateDialogPage> createState() => _RateDialogPageState();
 }
 
 class _RateDialogPageState extends State<RateDialogPage> {

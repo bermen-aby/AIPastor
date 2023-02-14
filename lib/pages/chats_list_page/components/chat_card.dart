@@ -74,10 +74,10 @@ class _ChatCardState extends State<ChatCard> {
       onTap: widget.press,
       onLongPress: widget.longPress,
       child: Card(
-        shadowColor: kPrimaryColor,
+        //shadowColor: kPrimaryColor,
         color: _selectionProvider.containsChatDetails(widget.chat)
             ? Colors.white
-            : kSecondaryColor.withOpacity(0.25),
+            : Colors.grey.withOpacity(0.50),
         child: Padding(
           padding: const EdgeInsets.symmetric(
               horizontal: kDefaultPadding, vertical: kDefaultPadding * 0.75),

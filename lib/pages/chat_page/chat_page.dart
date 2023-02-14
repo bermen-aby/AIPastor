@@ -1,16 +1,15 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:async';
 
 import 'package:ai_pastor/pages/onboarding/slides/donation.dart';
 import 'package:ai_pastor/provider/selection_provider.dart';
-import 'package:ai_pastor/provider/theme_provider.dart';
 import 'package:ai_pastor/utils/translate.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:avatar_glow/avatar_glow.dart';
-import 'package:camera/camera.dart';
 import 'package:clipboard/clipboard.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -21,7 +20,7 @@ import 'package:new_version/new_version.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../models/menu_item.dart';
-import '../../utils/utils.dart';
+import '../../provider/locale_provider.dart';
 import '/pages/chats_list_page/chats_list_page.dart';
 import '/services/isar_services.dart';
 import '../../models/chat_model.dart';
@@ -75,11 +74,12 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
 
   List<MenuItem> itemList = [];
 
-  CameraController? _cameraController;
+  //CameraController? _cameraController;
 
   @override
   void initState() {
     super.initState();
+    initLocale();
     initTts();
 
     _selectionProvider = Provider.of<SelectionProvider>(context, listen: false);
@@ -102,7 +102,7 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
     _advancedDrawerController.dispose();
     _flutterTts.stop();
     WidgetsBinding.instance.removeObserver(this);
-    _stopCamera();
+    //_stopCamera();
     super.dispose();
   }
 
@@ -140,7 +140,7 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
   }
 
   initChat() async {
-    cameraGranted = await LocalServices.requestCameraPermission();
+    //cameraGranted = await LocalServices.requestCameraPermission();
     _autoPlay = await LocalServices.getAutoPlay();
     if (widget.chatDetails != null) {
       chat = (await _isarServices.getChat(widget.chatDetails!))!;
@@ -176,13 +176,17 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
     itemList.addAll([itemCopy, itemShare]);
     setState(() {});
     int launchCount = await LocalServices.getLaunchCount();
-    if (launchCount % 1 == 0) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => Donation(slideNumber: 3, donatePageOnly: true),
-        ),
-      );
+    if (launchCount % 4 == 0) {
+      if (toDonate) {
+        toDonate = false;
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                const Donation(slideNumber: 3, donatePageOnly: true),
+          ),
+        );
+      }
     }
     // final theme = Provider.of<ThemeProvider>(context, listen: false);
     // SystemChrome.setSystemUIOverlayStyle(
@@ -246,7 +250,7 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
                           height: 40,
                           child: Center(
                             child: Card(
-                              color: Theme.of(context).primaryColor,
+                              color: kSecondaryColor,
                               child: Padding(
                                 padding: const EdgeInsets.all(8),
                                 child: Text(
@@ -357,12 +361,13 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
                                                   minLines: 1,
                                                   enabled: !_apiProcess,
                                                   controller: _promptController,
-                                                  decoration:
-                                                      const InputDecoration(
+                                                  decoration: InputDecoration(
                                                     contentPadding:
-                                                        EdgeInsets.all(12),
+                                                        const EdgeInsets.all(
+                                                            12),
                                                     //border: InputBorder.none,
-                                                    hintText: 'Type message',
+                                                    hintText:
+                                                        t(context).typeMessage,
                                                   ),
                                                 ),
                                               ),
@@ -418,6 +423,13 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
   AppBar buildAppBar() {
     return AppBar(
       automaticallyImplyLeading: false,
+      flexibleSpace: Container(
+        decoration: const BoxDecoration(
+            gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: <Color>[kSecondaryColor, kPrimaryColor])),
+      ),
       title: _selectionProvider.selectionMode
           ? Text(_selectionProvider.messages.length.toString())
           : InkWell(
@@ -439,9 +451,12 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            t(context).pastorJacob, // AImee
+                            t(context).aimee, // AImee
                             style: const TextStyle(
                                 fontSize: 16, color: Colors.white),
+                          ),
+                          const SizedBox(
+                            height: 2.5,
                           ),
                           Text(
                             widget.chatDetails?.title ?? '',
@@ -493,33 +508,33 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
             child: const Icon(Icons.ios_share),
           ),
         if (!_selectionProvider.selectionMode)
-          IconButton(
-            icon: const Icon(Icons.scanner),
-            tooltip: t(context).voiceOff,
-            onPressed: () async {
-              cameraGranted = await LocalServices.requestCameraPermission();
-              final cameras = await availableCameras().then(
-                (value) {
-                  _initCameraController(value);
-                  return CameraPreview(_cameraController!);
-                },
-              );
+          // IconButton(
+          //   icon: const Icon(Icons.scanner),
+          //   tooltip: t(context).voiceOff,
+          //   onPressed: () async {
+          //     cameraGranted = await LocalServices.requestCameraPermission();
+          //     final cameras = await availableCameras().then(
+          //       (value) {
+          //         _initCameraController(value);
+          //         return CameraPreview(_cameraController!);
+          //       },
+          //     );
 
-              setState(() {});
+          //     setState(() {});
+          //   },
+          // ),
+          IconButton(
+            icon: _autoPlay
+                ? const Icon(Icons.volume_up)
+                : const Icon(Icons.volume_off),
+            tooltip: t(context).voiceOff,
+            onPressed: () {
+              setState(() {
+                _autoPlay = !_autoPlay;
+                LocalServices.setAutoPlay(_autoPlay);
+              });
             },
           ),
-        IconButton(
-          icon: _autoPlay
-              ? const Icon(Icons.volume_up)
-              : const Icon(Icons.volume_off),
-          tooltip: t(context).voiceOff,
-          onPressed: () {
-            setState(() {
-              _autoPlay = !_autoPlay;
-              LocalServices.setAutoPlay(_autoPlay);
-            });
-          },
-        ),
         IconButton(
           icon: ValueListenableBuilder(
               valueListenable: _advancedDrawerController,
@@ -572,10 +587,9 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
     await _flutterTts.setVolume(1);
     await _flutterTts.setSpeechRate(0.5);
     await _flutterTts.setPitch(0.61);
-    Locale _locale = Localizations.localeOf(context);
-    String _languageCode = _locale.languageCode;
-    print(_locale.languageCode);
-    if (_languageCode == "fr") {
+    Locale locale = Localizations.localeOf(context);
+    String languageCode = locale.languageCode;
+    if (languageCode == "fr") {
       await _flutterTts.setLanguage("fr-FR");
     } else {
       await _flutterTts.setLanguage("en-US");
@@ -743,19 +757,20 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
       _promptController.clear();
       _apiProcess = true;
     });
-    if (widget.chatDetails == null) {
-      widget.chatDetails =
-          ChatDetails(title: t(context).newDiscussion, date: DateTime.now());
-    }
+    bool french = false;
+    widget.chatDetails ??=
+        ChatDetails(title: t(context).newDiscussion, date: DateTime.now());
     widget.chatDetails!
       ..date = DateTime.now()
       ..lastMessage = message.text;
     if (messages.length == 2) {
-      Locale _locale = Localizations.localeOf(context);
-      String _languageCode = _locale.languageCode;
-      bool french = false;
-      print(_locale.languageCode);
-      if (_languageCode == "fr") {
+      Locale locale = Localizations.localeOf(context);
+      String languageCode = locale.languageCode;
+
+      if (kDebugMode) {
+        print(locale.languageCode);
+      }
+      if (languageCode == "fr") {
         french = true;
       }
       widget.chatDetails!.title =
@@ -768,10 +783,10 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
         "LOG: chat.details.value.lastMessage ${chat?.details.value?.lastMessage}");
     debugPrint("LOG: chat.details.value.id ${chat?.details.value?.id}");
 
-    chat!.summary += await _apiServices.generateSummary(message);
+    chat!.summary += await _apiServices.generateSummary(message, french);
     chat = await _isarServices.saveChat(chat!, message);
-    _generatedText =
-        await _apiServices.generateReply(message.text, context: chat?.summary);
+    _generatedText = await _apiServices.generateReply(message.text,
+        context: chat?.summary, french: french);
     final messageResponse =
         Message(text: _generatedText, date: DateTime.now(), isSender: false);
     setState(() {
@@ -792,28 +807,29 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
       print("New title is: ${widget.chatDetails?.title}");
     }
 
-    chat!.summary += await _apiServices.generateSummary(messageResponse);
+    chat!.summary +=
+        await _apiServices.generateSummary(messageResponse, french);
     chat = await _isarServices.saveChat(chat!, messageResponse);
   }
 
-  _deleteButton() {
-    Utils.showMessage(
-      context,
-      t(context).delete,
-      t(context).deleteMessagesConfirmation,
-      t(context).no,
-      () {
-        _popWindow();
-      },
-      buttonText2: t(context).yes,
-      onPressed2: () {
-        _selectionProvider.deleteMessages();
-        setState(() {});
-        _popWindow();
-      },
-      isConfirmationDialog: true,
-    );
-  }
+  // _deleteButton() {
+  //   Utils.showMessage(
+  //     context,
+  //     t(context).delete,
+  //     t(context).deleteMessagesConfirmation,
+  //     t(context).no,
+  //     () {
+  //       _popWindow();
+  //     },
+  //     buttonText2: t(context).yes,
+  //     onPressed2: () {
+  //       _selectionProvider.deleteMessages();
+  //       setState(() {});
+  //       _popWindow();
+  //     },
+  //     isConfirmationDialog: true,
+  //   );
+  // }
 
   _popWindow() {
     Navigator.of(context).pop();
@@ -870,32 +886,29 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        Card(
-          color: Colors.transparent,
-          child: Container(
-            //color: Colors.transparent,
-            padding: const EdgeInsets.symmetric(
-              horizontal: kDefaultPadding * 0.75,
-              vertical: kDefaultPadding / 2,
-            ),
-            margin: message.isSender
-                ? const EdgeInsets.fromLTRB(75, 0, 0, 0)
-                : const EdgeInsets.fromLTRB(0, 0, 75, 0),
-            decoration: BoxDecoration(
+        Container(
+          //color: Colors.transparent,
+          padding: const EdgeInsets.symmetric(
+            horizontal: kDefaultPadding * 0.75,
+            vertical: kDefaultPadding / 2,
+          ),
+          margin: message.isSender
+              ? const EdgeInsets.fromLTRB(75, 0, 0, 0)
+              : const EdgeInsets.fromLTRB(0, 0, 75, 0),
+          decoration: BoxDecoration(
+            color: _selectionProvider.containsMessage(message)
+                ? Colors.white
+                : kPrimaryColor.withOpacity(message.isSender ? 1 : 0.3),
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: Text(
+            message.text,
+            style: TextStyle(
               color: _selectionProvider.containsMessage(message)
-                  ? Colors.white
-                  : kPrimaryColor.withOpacity(message.isSender ? 1 : 0.3),
-              borderRadius: BorderRadius.circular(30),
-            ),
-            child: Text(
-              message.text,
-              style: TextStyle(
-                color: _selectionProvider.containsMessage(message)
-                    ? kPrimaryColor
-                    : message.isSender
-                        ? Colors.white
-                        : Theme.of(context).textTheme.bodyLarge!.color,
-              ),
+                  ? kPrimaryColor
+                  : message.isSender
+                      ? Colors.white
+                      : Theme.of(context).textTheme.bodyLarge!.color,
             ),
           ),
         ),
@@ -928,10 +941,8 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
   }
 
   void changeTitle() {
-    if (widget.chatDetails == null) {
-      widget.chatDetails =
-          ChatDetails(title: t(context).newDiscussion, date: DateTime.now());
-    }
+    widget.chatDetails ??=
+        ChatDetails(title: t(context).newDiscussion, date: DateTime.now());
     _titleController.text = widget.chatDetails!.title;
     showDialog(
         context: context,
@@ -1008,66 +1019,80 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
     }
   }
 
-  // Starts and stops the camera according to the lifecycle of the app
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (_cameraController == null || !_cameraController!.value.isInitialized) {
-      return;
-    }
-
-    if (state == AppLifecycleState.inactive) {
-      _stopCamera();
-    } else if (state == AppLifecycleState.resumed &&
-        _cameraController != null &&
-        _cameraController!.value.isInitialized) {
-      _startCamera();
-    }
-  }
-
-  void _startCamera() {
-    if (_cameraController != null) {
-      _cameraSelected(_cameraController!.description);
-    }
-  }
-
-  void _stopCamera() {
-    if (_cameraController != null) {
-      _cameraController?.dispose();
-    }
-  }
-
-  void _initCameraController(List<CameraDescription> cameras) {
-    if (_cameraController != null) {
-      return;
-    }
-
-    // Select the first rear camera.
-    CameraDescription? camera;
-    for (var i = 0; i < cameras.length; i++) {
-      final CameraDescription current = cameras[i];
-      if (current.lensDirection == CameraLensDirection.back) {
-        camera = current;
-        break;
+  Future<bool> initLocale() async {
+    final localeProvider = Provider.of<LocaleProvider>(context, listen: false);
+    await LocalServices.getLanguage().then((value) {
+      if (value != null) {
+        localeProvider.setLocale(Locale(value));
+      } else {
+        final locale = Localizations.localeOf(context);
+        //localeProvider.setLocale(locale); simplifié plus bas
+        LocalServices.setLanguage(locale.languageCode);
       }
-    }
-
-    if (camera != null) {
-      _cameraSelected(camera);
-    }
+    });
+    return true;
   }
 
-  Future<void> _cameraSelected(CameraDescription camera) async {
-    _cameraController = CameraController(
-      camera,
-      ResolutionPreset.max,
-      enableAudio: false,
-    );
+  // Starts and stops the camera according to the lifecycle of the app
+  // @override
+  // void didChangeAppLifecycleState(AppLifecycleState state) {
+  //   if (_cameraController == null || !_cameraController!.value.isInitialized) {
+  //     return;
+  //   }
 
-    await _cameraController!.initialize();
+  //   if (state == AppLifecycleState.inactive) {
+  //     _stopCamera();
+  //   } else if (state == AppLifecycleState.resumed &&
+  //       _cameraController != null &&
+  //       _cameraController!.value.isInitialized) {
+  //     _startCamera();
+  //   }
+  // }
 
-    if (!mounted) {
-      return;
-    }
-    setState(() {});
-  }
+  // void _startCamera() {
+  //   if (_cameraController != null) {
+  //     _cameraSelected(_cameraController!.description);
+  //   }
+  // }
+
+  // void _stopCamera() {
+  //   if (_cameraController != null) {
+  //     _cameraController?.dispose();
+  //   }
+  // }
+
+  // void _initCameraController(List<CameraDescription> cameras) {
+  //   if (_cameraController != null) {
+  //     return;
+  //   }
+
+  // Select the first rear camera.
+  //   CameraDescription? camera;
+  //   for (var i = 0; i < cameras.length; i++) {
+  //     final CameraDescription current = cameras[i];
+  //     if (current.lensDirection == CameraLensDirection.back) {
+  //       camera = current;
+  //       break;
+  //     }
+  //   }
+
+  //   if (camera != null) {
+  //     _cameraSelected(camera);
+  //   }
+  // }
+
+  // Future<void> _cameraSelected(CameraDescription camera) async {
+  //   _cameraController = CameraController(
+  //     camera,
+  //     ResolutionPreset.max,
+  //     enableAudio: false,
+  //   );
+
+  //   await _cameraController!.initialize();
+
+  //   if (!mounted) {
+  //     return;
+  //   }
+  //   setState(() {});
+  // }
 }

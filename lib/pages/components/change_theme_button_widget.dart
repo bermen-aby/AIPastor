@@ -26,8 +26,11 @@ class ChangeThemeButtonWidget extends StatelessWidget {
         onTap: () {},
         leading: const Icon(Icons.dark_mode_outlined, color: Colors.white),
         trailing: Switch.adaptive(
-          activeTrackColor: Colors.white,
-          thumbColor: MaterialStateProperty.all<Color>(Colors.white),
+          // activeTrackColor: Colors.white,
+          thumbColor: MaterialStateProperty.all<Color>(Colors.green),
+          trackColor: MaterialStateProperty.resolveWith(
+            (states) => themeProvider.isDarkMode ? Colors.black : Colors.white,
+          ),
           value: themeProvider.isDarkMode,
           onChanged: (value) {
             final provider = Provider.of<ThemeProvider>(context, listen: false);

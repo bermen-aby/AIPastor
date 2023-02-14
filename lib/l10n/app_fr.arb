@@ -4,14 +4,14 @@
         "description" : "Langue"
     },
     "screen1Title" : "AImee",
-    "screen1SubTitle" : "Votre compagnon spirituel",
-    "screen1Description" : "Démarrez votre voyage spirituel et approfondissez votre foi avec le pasteur Jacob, notre assistant intelligence artificielle.",
-    "screen2Title" : "Discutez avec Pasteur Jacob",
+    "screen1SubTitle" : "Ton nouveau compagnon",
+    "screen1Description" : "Préparez-vous à commencer votre voyage et à approfondir vos connaissances avec AImee, notre assistant doté d'une intelligence artificielle.",
+    "screen2Title" : "Discutez avec AImee",
     "screen2Description" : "Toutes les conversations avec le pasteur Jacob sont sauvegardées, ce qui vous permet de revenir aux discussions précédentes et de poursuivre à tout moment.",
     "screen3Title" : "Soutenez notre mission",
     "screen3Description" : "Faire fonctionner AImee nécessite des ressources. Vous pouvez soutenir notre mission en faisant un don, aussi petit soit-il. Votre soutien nous aidera à maintenir l'application en fonctionnement et à l'améliorer, permettant ainsi à davantage de personnes de bénéficier de AImee.",
     "screen4Title" : "Démarrez !",
-    "screen4Description" : "Explorez les enseignements du christianisme, posez des questions et approfondissez votre compréhension de la foi avec l'aide de votre compagnon spirituel personnel.",
+    "screen4Description" : "Explorez, posez des questions et approfondissez votre compréhension avec l'aide de votre accompagnateur personnel.",
     "startChatting": "Démarrer",
     "previous": "Précédant",
     "next": "Suivant",
@@ -28,7 +28,7 @@
     "later" : "Plus tard",
     "newUpdate" : "Mise à jour",
     "pressToExit" : "Appuyer à nouveau pour quitter",
-    "hello" : "Bonjour ! Je suis le pasteur Jacob, votre compagnon spirituel. Je suis ici pour vous aider à approfondir votre compréhension du christianisme et répondre à toutes vos questions. Comment puis-je vous aider aujourd'hui ?",
+    "hello" : "Bonjour! Je suis AImee, votre compagnon AI. Je suis là pour vous aider et répondre à toutes vos questions. Comment puis-je vous aider aujourd'hui ?",
     "donate" : "Faire un don",
     "deleteMessages": "Supprimer les messages selectionnés",
     "copy": "Copier",
@@ -47,7 +47,8 @@
     "deleteChatConfirmation": "Êtes-vous sûr de vouloir supprimer les discussions sélectionnées ?" ,
     "delete": "Supprimer",
     "changeTitle": "Modifier le titre",
-    "darkMode": "Mode Sombre"
+    "darkMode": "Mode Sombre",
+    "typeMessage": "Votre message"
 
 }
 

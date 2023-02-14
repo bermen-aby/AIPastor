@@ -6,3 +6,4 @@ bool maj = true;
 bool isPopupActive = false;
 bool firstVisit = true;
 late Isar isar;
+bool toDonate = true;

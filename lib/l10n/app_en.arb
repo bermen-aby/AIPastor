@@ -1,14 +1,14 @@
 {
     "language": "Language",
     "screen1Title": "AImee",
-    "screen1SubTitle": "Your Spiritual Companion",
-    "screen1Description": "Get ready to start your spiritual journey and deepen your faith with Pastor Jacob, our AI-powered assistant.",
-    "screen2Title": "Chat with Pastor Jacob",
-    "screen2Description": "All conversations with Pastor Jacob are saved, allowing you to return to previous chats and continue the conversation at any time.",
+    "screen1SubTitle": "Your new Companion",
+    "screen1Description": "Get ready to start your journey and deepen your knowledge with AImee, our AI-powered assistant.",
+    "screen2Title": "Chat with AImee",
+    "screen2Description": "All conversations with AImee are saved, allowing you to return to previous chats and continue the conversation at any time.",
     "screen3Title": "Support Our Mission",
     "screen3Description": "Running AImee requires resources. You can support our mission by making a donation, no matter how small. Your support will help keep the app running and improving, allowing more people to benefit from AImee.",
     "screen4Title": "Get Started!",
-    "screen4Description": "Explore the teachings of Christianity, ask questions, and deepen your understanding of the faith with the help of your personal spiritual companion.",
+    "screen4Description": "Explore everything, ask questions, and deepen your understanding of everything with the help of your personal companion.",
     "startChatting": "Start Chatting",
     "previous": "Previous",
     "next": "Next",
@@ -26,7 +26,7 @@
     "later": "Later",
     "newUpdate": "New Update",
     "pressToExit": "Press again to exit",
-    "hello": "Hello there! I'm Pastor Jacob, your AI spiritual companion. I'm here to help you deepen your understanding of Christianity and answer any questions you may have. How can I assist you today?",
+    "hello": "Hello there! I'm AImee, your AI companion. I'm here to help you  and answer any questions you may have. How can I assist you today?",
     "donate": "Donate",
     "copy": "Copy",
     "copied": "Copied!",
@@ -44,7 +44,8 @@
     "deleteChatConfirmation": "Are you sure you want to remove the selected discussions?",
     "delete": "Delete",
     "changeTitle": "Change Title",
-    "darkMode": "Dark Mode"
+    "darkMode": "Dark Mode",
+    "typeMessage": "Type Message"
 
 }
 

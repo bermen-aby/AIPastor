@@ -17,7 +17,8 @@ String stop = ".";
 class APIService {
   final _speech = SpeechToText();
 
-  Future<String> generateReply(String prompt, {String? context}) async {
+  Future<String> generateReply(String prompt,
+      {String? context, bool? french}) async {
     if (kDebugMode) {
       print("LOG: context: $context");
     }
@@ -26,8 +27,9 @@ class APIService {
         "https://api.openai.com/v1/completions",
         data: {
           "model": replyModel,
-          "prompt":
-              "You are Pastor Jacob. Continue the discussion by replying to this, and adding a revelant Bible verse if needed:\n$context ME: $prompt ? \n PASTOR: ",
+          "prompt": french ?? false
+              ? "Vous êtes une IA nommée Aimee. Poursuivez la discussion en répondant à cette question:\n$context Moi: $prompt ? \n AImee: "
+              : "You are an AI named Aimee. Continue the discussion by replying to this:\n$context Me: $prompt ? \n AImee: ",
           "max_tokens": maxTokens,
         },
         options: Options(
@@ -52,13 +54,15 @@ class APIService {
     }
   }
 
-  Future<String> generateSummary(Message message) async {
+  Future<String> generateSummary(Message message, bool? french) async {
     //final discussion = getDiscussion(textsList);
     try {
       Response response = await Dio().post(
         "https://api.openai.com/v1/completions",
         data: {
-          "prompt": "Please summarize this text: ${message.text}",
+          "prompt": french ?? false
+              ? "Résume ce texte: ${message.text}"
+              : "Please summarize this text: ${message.text}",
           "temperature": 0.5,
           "max_tokens": 100,
           "top_p": 1,
@@ -76,9 +80,11 @@ class APIService {
         var generatedText = response.data['choices'][0]['text'];
         String summary = "";
         if (message.isSender) {
-          summary += "ME: ${removeEmptyLines(generatedText)} \n ";
+          summary += french ?? false
+              ? "Moi: ${removeEmptyLines(generatedText)} \n "
+              : "Me: ${removeEmptyLines(generatedText)} \n ";
         } else {
-          summary += "PASTOR: ${removeEmptyLines(generatedText)} \n ";
+          summary += "AImee: ${removeEmptyLines(generatedText)} \n ";
         }
         if (kDebugMode) {
           print("LOG: Summary: $summary");
@@ -92,7 +98,7 @@ class APIService {
       if (kDebugMode) {
         print(e);
       }
-      return "Error generating Summary: $e";
+      return "Error generating Summary";
     }
   }
 

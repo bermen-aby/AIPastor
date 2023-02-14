@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-const kPrimaryColor = Color(0xFF095D9E);
-const kSecondaryColor = Color(0xFF9CD5F9);
+const kPrimaryColor = Color(0xFF00A884);
+const kSecondaryColor = Color(0xFF025144);
 const kContentColorLightTheme = Color(0xFF1D1D35);
 const kContentColorDarkTheme = Color(0xFFF5FCF9);
 const kWarninngColor = Color(0xFFF3BB1C);
 const kErrorColor = Color(0xFFF03738);
 const kSuccessColor = Colors.green;
 const kScaffoldBackgroundColorLight = Color.fromARGB(255, 245, 245, 245);
+const kScaffoldBackgroundColorDark = Color(0xFF121415);
 
 const kDefaultPadding = 20.0;
 
@@ -55,8 +56,8 @@ const darkOverlayStyle = SystemUiOverlayStyle(
   systemNavigationBarIconBrightness: Brightness.light,
 );
 
-const playStoreId = 'com.bermen.aipastor';
-const appleStoreId = 'com.bermen.aipastor';
+const playStoreId = 'com.mugen.aimee';
+const appleStoreId = 'com.mugen.aimee';
 
 const MethodChannel platform =
     MethodChannel('dexterx.dev/flutter_local_notifications_example');
