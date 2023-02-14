@@ -1,15 +1,15 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:async';
 
 import 'package:ai_pastor/pages/onboarding/slides/donation.dart';
 import 'package:ai_pastor/provider/selection_provider.dart';
-import 'package:ai_pastor/provider/theme_provider.dart';
 import 'package:ai_pastor/utils/translate.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:clipboard/clipboard.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -20,7 +20,6 @@ import 'package:new_version/new_version.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../models/menu_item.dart';
-import '../../utils/utils.dart';
 import '/pages/chats_list_page/chats_list_page.dart';
 import '/services/isar_services.dart';
 import '../../models/chat_model.dart';
@@ -167,11 +166,12 @@ class _ChatPageState extends State<ChatPage> {
     itemList.addAll([itemCopy, itemShare]);
     setState(() {});
     int launchCount = await LocalServices.getLaunchCount();
-    if (launchCount % 1 == 0) {
+    if (launchCount % 4 == 0) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => Donation(slideNumber: 3, donatePageOnly: true),
+          builder: (context) =>
+              const Donation(slideNumber: 3, donatePageOnly: true),
         ),
       );
     }
@@ -348,12 +348,13 @@ class _ChatPageState extends State<ChatPage> {
                                                   minLines: 1,
                                                   enabled: !_apiProcess,
                                                   controller: _promptController,
-                                                  decoration:
-                                                      const InputDecoration(
+                                                  decoration: InputDecoration(
                                                     contentPadding:
-                                                        EdgeInsets.all(12),
+                                                        const EdgeInsets.all(
+                                                            12),
                                                     //border: InputBorder.none,
-                                                    hintText: 'Type message',
+                                                    hintText:
+                                                        t(context).typeMessage,
                                                   ),
                                                 ),
                                               ),
@@ -511,7 +512,7 @@ class _ChatPageState extends State<ChatPage> {
           onPressed: () {
             _advancedDrawerController.showDrawer();
           },
-          tooltip: "Open the settings",
+          tooltip: t(context).openSettings,
         ),
         const SizedBox(width: kDefaultPadding / 2),
       ],
@@ -547,10 +548,12 @@ class _ChatPageState extends State<ChatPage> {
     await _flutterTts.setVolume(1);
     await _flutterTts.setSpeechRate(0.5);
     await _flutterTts.setPitch(0.61);
-    Locale _locale = Localizations.localeOf(context);
-    String _languageCode = _locale.languageCode;
-    print(_locale.languageCode);
-    if (_languageCode == "fr") {
+    Locale locale = Localizations.localeOf(context);
+    String languageCode = locale.languageCode;
+    if (kDebugMode) {
+      print(locale.languageCode);
+    }
+    if (languageCode == "fr") {
       await _flutterTts.setLanguage("fr-FR");
     } else {
       await _flutterTts.setLanguage("en-US");
@@ -718,19 +721,20 @@ class _ChatPageState extends State<ChatPage> {
       _promptController.clear();
       _apiProcess = true;
     });
-    if (widget.chatDetails == null) {
-      widget.chatDetails =
-          ChatDetails(title: t(context).newDiscussion, date: DateTime.now());
-    }
+    bool french = false;
+    widget.chatDetails ??=
+        ChatDetails(title: t(context).newDiscussion, date: DateTime.now());
     widget.chatDetails!
       ..date = DateTime.now()
       ..lastMessage = message.text;
     if (messages.length == 2) {
-      Locale _locale = Localizations.localeOf(context);
-      String _languageCode = _locale.languageCode;
-      bool french = false;
-      print(_locale.languageCode);
-      if (_languageCode == "fr") {
+      Locale locale = Localizations.localeOf(context);
+      String languageCode = locale.languageCode;
+
+      if (kDebugMode) {
+        print(locale.languageCode);
+      }
+      if (languageCode == "fr") {
         french = true;
       }
       widget.chatDetails!.title =
@@ -743,10 +747,10 @@ class _ChatPageState extends State<ChatPage> {
         "LOG: chat.details.value.lastMessage ${chat?.details.value?.lastMessage}");
     debugPrint("LOG: chat.details.value.id ${chat?.details.value?.id}");
 
-    chat!.summary += await _apiServices.generateSummary(message);
+    chat!.summary += await _apiServices.generateSummary(message, french);
     chat = await _isarServices.saveChat(chat!, message);
-    _generatedText =
-        await _apiServices.generateReply(message.text, context: chat?.summary);
+    _generatedText = await _apiServices.generateReply(message.text,
+        context: chat?.summary, french: french);
     final messageResponse =
         Message(text: _generatedText, date: DateTime.now(), isSender: false);
     setState(() {
@@ -767,28 +771,29 @@ class _ChatPageState extends State<ChatPage> {
       print("New title is: ${widget.chatDetails?.title}");
     }
 
-    chat!.summary += await _apiServices.generateSummary(messageResponse);
+    chat!.summary +=
+        await _apiServices.generateSummary(messageResponse, french);
     chat = await _isarServices.saveChat(chat!, messageResponse);
   }
 
-  _deleteButton() {
-    Utils.showMessage(
-      context,
-      t(context).delete,
-      t(context).deleteMessagesConfirmation,
-      t(context).no,
-      () {
-        _popWindow();
-      },
-      buttonText2: t(context).yes,
-      onPressed2: () {
-        _selectionProvider.deleteMessages();
-        setState(() {});
-        _popWindow();
-      },
-      isConfirmationDialog: true,
-    );
-  }
+  // _deleteButton() {
+  //   Utils.showMessage(
+  //     context,
+  //     t(context).delete,
+  //     t(context).deleteMessagesConfirmation,
+  //     t(context).no,
+  //     () {
+  //       _popWindow();
+  //     },
+  //     buttonText2: t(context).yes,
+  //     onPressed2: () {
+  //       _selectionProvider.deleteMessages();
+  //       setState(() {});
+  //       _popWindow();
+  //     },
+  //     isConfirmationDialog: true,
+  //   );
+  // }
 
   _popWindow() {
     Navigator.of(context).pop();
@@ -823,14 +828,14 @@ class _ChatPageState extends State<ChatPage> {
               ),
               child: Row(
                 children: [
-                  const Expanded(
-                    child: Text('Please connect to Internet'),
+                  Expanded(
+                    child: Text(t(context).connectToInternet),
                   ),
                   TextButton(
                     onPressed: () {
                       checkConnection();
                     },
-                    child: const Text('RETRY'),
+                    child: Text(t(context).retry),
                   ),
                 ],
               ),
@@ -903,10 +908,8 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void changeTitle() {
-    if (widget.chatDetails == null) {
-      widget.chatDetails =
-          ChatDetails(title: t(context).newDiscussion, date: DateTime.now());
-    }
+    widget.chatDetails ??=
+        ChatDetails(title: t(context).newDiscussion, date: DateTime.now());
     _titleController.text = widget.chatDetails!.title;
     showDialog(
         context: context,

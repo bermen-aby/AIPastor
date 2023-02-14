@@ -1,6 +1,5 @@
 import 'package:ai_pastor/constants.dart';
 import 'package:ai_pastor/provider/theme_provider.dart';
-import 'package:ai_pastor/variables.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';

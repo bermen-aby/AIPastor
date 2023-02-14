@@ -44,7 +44,10 @@
     "deleteChatConfirmation": "Are you sure you want to remove the selected discussions?",
     "delete": "Delete",
     "changeTitle": "Change Title",
-    "darkMode": "Dark Mode"
+    "darkMode": "Dark Mode",
+    "typeMessage": "Type Message",
+    "connectToInternet": "Please connect to Internet",
+    "retry": "Retry"
 
 }
 

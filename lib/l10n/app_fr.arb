@@ -47,7 +47,10 @@
     "deleteChatConfirmation": "Êtes-vous sûr de vouloir supprimer les discussions sélectionnées ?" ,
     "delete": "Supprimer",
     "changeTitle": "Modifier le titre",
-    "darkMode": "Mode Sombre"
+    "darkMode": "Mode Sombre",
+    "typeMessage": "Votre message",
+    "connectToInternet": "Veuillez vous connecter à Internet",
+    "retry": "Réesayer"
 
 }
 

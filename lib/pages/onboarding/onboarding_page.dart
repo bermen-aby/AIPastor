@@ -3,6 +3,7 @@ import 'package:ai_pastor/utils/translate.dart';
 
 import '../../constants.dart';
 import '../../variables.dart';
+import '../components/change_language_widget.dart';
 import 'slides/slides.dart';
 import 'package:flutter/material.dart';
 import 'package:rate_my_app/rate_my_app.dart';
@@ -54,7 +55,24 @@ class _OnboardingPageState extends State<OnboardingPage> {
               const Slides(slideNumber: 4),
             ],
           ),
+          _languageSelector(),
           _navigation(),
+        ],
+      ),
+    );
+  }
+
+  Widget _languageSelector() {
+    return Container(
+      alignment: const Alignment(0, 0.8),
+      padding: const EdgeInsets.all(kDefaultPadding),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const SizedBox(),
+          ChangeLanguageWidget(setstate: () {
+            setState(() {});
+          }),
         ],
       ),
     );

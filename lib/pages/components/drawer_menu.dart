@@ -1,9 +1,10 @@
+// ignore_for_file: use_build_context_synchronously
+
+import 'package:ai_pastor/pages/components/change_language_widget.dart';
 import 'package:ai_pastor/pages/components/change_theme_button_widget.dart';
 import 'package:ai_pastor/pages/onboarding/onboarding_page.dart';
 import 'package:ai_pastor/pages/onboarding/slides/donation.dart';
-import 'package:ai_pastor/pages/onboarding/slides/slides.dart';
 import 'package:ai_pastor/utils/translate.dart';
-import 'package:ai_pastor/variables.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
@@ -110,6 +111,9 @@ class _DrawerMenuState extends State<DrawerMenu> {
                         const StarRatingOptions(initialRating: 4),
                     actionsBuilder: actionsBuilder,
                   );
+                }),
+                ChangeLanguageWidget(setstate: () {
+                  setState(() {});
                 }),
                 const ChangeThemeButtonWidget(),
               ],

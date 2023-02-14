@@ -5,8 +5,6 @@ import 'package:grouped_list/grouped_list.dart';
 import 'package:provider/provider.dart';
 import 'package:rate_my_app/rate_my_app.dart';
 
-import '../../../components/filled_outline_button.dart';
-import '../../../constants.dart';
 import '../../../models/chat_details.dart';
 import '../../../services/isar_services.dart';
 import '../../chat_page/chat_page.dart';

@@ -8,7 +8,7 @@ class RateAppInitWidget extends StatefulWidget {
   final Widget Function(RateMyApp) builder;
 
   @override
-  _RateAppInitWidgetState createState() => _RateAppInitWidgetState();
+  State<RateAppInitWidget> createState() => _RateAppInitWidgetState();
 }
 
 class _RateAppInitWidgetState extends State<RateAppInitWidget> {

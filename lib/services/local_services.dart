@@ -118,15 +118,16 @@ class LocalServices {
     return prefs.setInt("lastLogin", now.day);
   }
 
-  static Future<bool> setLaunchCount() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    return prefs.setInt('launchCount', (prefs.getInt('launchCount') ?? 0) + 1);
-  }
-
   static Future<int> getLaunchCount() async {
     final prefs = await SharedPreferences.getInstance();
 
     return prefs.getInt('launchCount') ?? 0;
+  }
+
+  static Future<bool> setLaunchCount() async {
+    final prefs = await SharedPreferences.getInstance();
+    int launches = await getLaunchCount();
+    launches += 1;
+    return prefs.setInt('launchCount', launches);
   }
 }

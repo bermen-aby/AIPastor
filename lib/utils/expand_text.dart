@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
+//import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 
 class ExpandText extends StatefulWidget {
   const ExpandText(
@@ -34,10 +34,10 @@ class _ExpandTextState extends State<ExpandText> {
           const SizedBox(
             height: 20,
           ),
-          HtmlWidget(
-            descTextShowFlag ? widget.desc! : widget.shortDesc!,
-            textStyle: const TextStyle(fontSize: 16.5),
-          ),
+          // HtmlWidget(
+          //   descTextShowFlag ? widget.desc! : widget.shortDesc!,
+          //   textStyle: const TextStyle(fontSize: 16.5),
+          // ),
           const SizedBox(
             height: 20,
           ),
