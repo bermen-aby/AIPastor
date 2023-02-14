@@ -54,7 +54,7 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
   final APIService _apiServices = APIService();
   bool _isListening = false; // Listening to the mic
   bool _apiProcess = false;
-  bool _autoPlay = true; // Automatically play AI responses
+  bool _autoPlay = false; // Automatically play AI responses
   List<Message> messages = [];
   late FlutterTts _flutterTts;
   TtsState _ttsState = TtsState.stopped;
@@ -551,7 +551,7 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
           onPressed: () {
             _advancedDrawerController.showDrawer();
           },
-          tooltip: "Open the settings",
+          tooltip: t(context).openSettings,
         ),
         const SizedBox(width: kDefaultPadding / 2),
       ],
@@ -864,14 +864,14 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
               ),
               child: Row(
                 children: [
-                  const Expanded(
-                    child: Text('Please connect to Internet'),
+                  Expanded(
+                    child: Text(t(context).connectToInternet),
                   ),
                   TextButton(
                     onPressed: () {
                       checkConnection();
                     },
-                    child: const Text('RETRY'),
+                    child: Text(t(context).retry),
                   ),
                 ],
               ),

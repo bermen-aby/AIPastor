@@ -48,7 +48,9 @@
     "delete": "Supprimer",
     "changeTitle": "Modifier le titre",
     "darkMode": "Mode Sombre",
-    "typeMessage": "Votre message"
+    "typeMessage": "Votre message",
+    "connectToInternet": "Veuillez vous connecter à Internet",
+    "retry": "Réesayer"
 
 }
 

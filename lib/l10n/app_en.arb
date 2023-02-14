@@ -45,7 +45,9 @@
     "delete": "Delete",
     "changeTitle": "Change Title",
     "darkMode": "Dark Mode",
-    "typeMessage": "Type Message"
+    "typeMessage": "Type Message",
+    "connectToInternet": "Please connect to Internet",
+    "retry": "Retry"
 
 }
 

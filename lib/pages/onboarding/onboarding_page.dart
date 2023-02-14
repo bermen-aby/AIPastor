@@ -1,4 +1,5 @@
 import 'package:ai_pastor/pages/chat_page/chat_page.dart';
+import 'package:ai_pastor/pages/components/change_language_widget.dart';
 import 'package:ai_pastor/utils/translate.dart';
 import 'package:provider/provider.dart';
 
@@ -58,7 +59,22 @@ class _OnboardingPageState extends State<OnboardingPage> {
               const Slides(slideNumber: 4),
             ],
           ),
+          _languageSelector(),
           _navigation(),
+        ],
+      ),
+    );
+  }
+
+  Widget _languageSelector() {
+    return Container(
+      alignment: const Alignment(0, 0.8),
+      padding: const EdgeInsets.all(kDefaultPadding),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const SizedBox(),
+          ChangeLanguageWidget(),
         ],
       ),
     );
