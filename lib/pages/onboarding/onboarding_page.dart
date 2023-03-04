@@ -31,7 +31,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
   }
 
   init() {
-    nb = firstVisit ? 2 : 3;
+    nb = firstVisitVar ? 2 : 3;
   }
 
   @override
@@ -51,7 +51,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
             children: [
               const Slides(slideNumber: 1),
               const Slides(slideNumber: 2),
-              if (!firstVisit) const Slides(slideNumber: 3),
+              if (!firstVisitVar) const Slides(slideNumber: 3),
               const Slides(slideNumber: 4),
             ],
           ),
@@ -100,7 +100,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
               : const SizedBox(),
           SmoothPageIndicator(
             controller: _pageController,
-            count: firstVisit ? 3 : 4,
+            count: firstVisitVar ? 3 : 4,
             effect: const WormEffect(
               activeDotColor: Colors.green,
             ),

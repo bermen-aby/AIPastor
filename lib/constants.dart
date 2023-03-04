@@ -1,5 +1,7 @@
+import 'package:ai_pastor/services/api_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:new_version/new_version.dart';
 
 const kPrimaryColor = Color(0xFF095D9E);
 const kSecondaryColor = Color(0xFF9CD5F9);
@@ -57,6 +59,13 @@ const darkOverlayStyle = SystemUiOverlayStyle(
 
 const playStoreId = 'com.bermen.aipastor';
 const appleStoreId = 'com.bermen.aipastor';
+
+final newVersion = NewVersion(
+  androidId: playStoreId, //"com.snapchat.android",
+  iOSId: appleStoreId,
+);
+
+final APIService apiServices = APIService();
 
 const MethodChannel platform =
     MethodChannel('dexterx.dev/flutter_local_notifications_example');

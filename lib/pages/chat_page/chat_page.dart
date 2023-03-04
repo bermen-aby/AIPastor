@@ -4,6 +4,8 @@ import 'dart:async';
 
 import 'package:ai_pastor/pages/onboarding/slides/donation.dart';
 import 'package:ai_pastor/provider/selection_provider.dart';
+import 'package:ai_pastor/provider/theme_provider.dart';
+import 'package:ai_pastor/services/theme_services.dart';
 import 'package:ai_pastor/utils/translate.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:avatar_glow/avatar_glow.dart';
@@ -13,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:grouped_list/grouped_list.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
@@ -20,6 +23,7 @@ import 'package:new_version/new_version.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../models/menu_item.dart';
+import '../../services/ad_mob_services.dart';
 import '/pages/chats_list_page/chats_list_page.dart';
 import '/services/isar_services.dart';
 import '../../models/chat_model.dart';
@@ -28,7 +32,6 @@ import '../../variables.dart';
 import 'package:rate_my_app/rate_my_app.dart';
 
 import '../../models/message.dart';
-import '../../services/api_services.dart';
 import '../../constants.dart';
 import '../../services/local_services.dart';
 import '../components/drawer_menu.dart';
@@ -50,7 +53,6 @@ class _ChatPageState extends State<ChatPage> {
   final TextEditingController _promptController = TextEditingController();
   final TextEditingController _titleController = TextEditingController();
   String _generatedText = '';
-  final APIService _apiServices = APIService();
   bool _isListening = false; // Listening to the mic
   bool _apiProcess = false;
   bool _autoPlay = true; // Automatically play AI responses
@@ -71,6 +73,8 @@ class _ChatPageState extends State<ChatPage> {
 
   List<MenuItem> itemList = [];
 
+  InterstitialAd? _interstitialAd;
+
   @override
   void initState() {
     super.initState();
@@ -88,6 +92,8 @@ class _ChatPageState extends State<ChatPage> {
     if (kDebugMode) {
       print('LOG: DATETIME NOW ${DateTime.now()}');
     }
+
+    _createInterstitialAd();
   }
 
   @override
@@ -95,6 +101,34 @@ class _ChatPageState extends State<ChatPage> {
     _advancedDrawerController.dispose();
     _flutterTts.stop();
     super.dispose();
+  }
+
+  _createInterstitialAd() {
+    InterstitialAd.load(
+      adUnitId: AdMobServices.interstitialAdUnitId,
+      request: const AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) => _interstitialAd = ad,
+        onAdFailedToLoad: (error) => _interstitialAd = null,
+      ),
+    );
+  }
+
+  void _showInterstitialAd() {
+    if (_interstitialAd != null) {
+      _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+        onAdDismissedFullScreenContent: (ad) {
+          ad.dispose();
+          _createInterstitialAd();
+        },
+        onAdFailedToShowFullScreenContent: (ad, error) {
+          ad.dispose();
+          _createInterstitialAd();
+        },
+      );
+      _interstitialAd!.show();
+      _interstitialAd = null;
+    }
   }
 
   initTts() async {
@@ -167,13 +201,16 @@ class _ChatPageState extends State<ChatPage> {
     setState(() {});
     int launchCount = await LocalServices.getLaunchCount();
     if (launchCount % 4 == 0) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) =>
-              const Donation(slideNumber: 3, donatePageOnly: true),
-        ),
-      );
+      if (!donationPopUpOnce) {
+        donationPopUpOnce = true;
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                const Donation(slideNumber: 3, donatePageOnly: true),
+          ),
+        );
+      }
     }
     // final theme = Provider.of<ThemeProvider>(context, listen: false);
     // SystemChrome.setSystemUIOverlayStyle(
@@ -215,185 +252,196 @@ class _ChatPageState extends State<ChatPage> {
             child: Scaffold(
               appBar: buildAppBar(),
               //backgroundColor: kContentColorLightTheme,
-              body: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: GroupedListView<Message, DateTime>(
-                        padding: const EdgeInsets.all(8),
-                        reverse: true,
-                        order: GroupedListOrder.DESC,
-                        useStickyGroupSeparators: true,
-                        floatingHeader: true,
-                        elements: messages,
-                        groupBy: (message) => DateTime(
-                          message.date.year,
-                          message.date.month,
-                          message.date.day,
-                        ),
-                        groupHeaderBuilder: (Message message) => SizedBox(
-                          height: 40,
-                          child: Center(
-                            child: Card(
-                              color: Theme.of(context).primaryColor,
-                              child: Padding(
-                                padding: const EdgeInsets.all(8),
-                                child: Text(
-                                  DateFormat.yMMMd()
-                                      .format(message.date)
-                                      .toUpperCase(),
-                                  style: const TextStyle(color: Colors.white),
+              body: Container(
+                decoration: ThemeServices().backgroundImage(context),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: GroupedListView<Message, DateTime>(
+                          padding: const EdgeInsets.all(8),
+                          reverse: true,
+                          order: GroupedListOrder.DESC,
+                          useStickyGroupSeparators: true,
+                          floatingHeader: true,
+                          elements: messages,
+                          groupBy: (message) => DateTime(
+                            message.date.year,
+                            message.date.month,
+                            message.date.day,
+                          ),
+                          groupHeaderBuilder: (Message message) => SizedBox(
+                            height: 40,
+                            child: Center(
+                              child: Card(
+                                color: Theme.of(context).primaryColor,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8),
+                                  child: Text(
+                                    DateFormat.yMMMd()
+                                        .format(message.date)
+                                        .toUpperCase(),
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                        itemBuilder: (context, Message message) => Align(
-                          alignment: !message.isSender
-                              ? Alignment.centerLeft
-                              : Alignment.centerRight,
-                          child: GestureDetector(
-                            onLongPress: () {
-                              setState(() {
-                                _selectionProvider.selectionMode =
-                                    !_selectionProvider.selectionMode;
+                          itemBuilder: (context, Message message) => Align(
+                            alignment: !message.isSender
+                                ? Alignment.centerLeft
+                                : Alignment.centerRight,
+                            child: GestureDetector(
+                              onLongPress: () {
+                                setState(() {
+                                  _selectionProvider.selectionMode =
+                                      !_selectionProvider.selectionMode;
+                                  if (_selectionProvider.selectionMode) {
+                                    _selectionProvider
+                                        .addOrRemoveMessage(message);
+                                  }
+                                });
+                              },
+                              onTap: () {
                                 if (_selectionProvider.selectionMode) {
                                   _selectionProvider
                                       .addOrRemoveMessage(message);
+                                  setState(() {});
+                                } else {
+                                  // Navigator.push(
+                                  //   context,
+                                  //   MaterialPageRoute(
+                                  //     builder: (context) => ChatPage(
+                                  //       chatDetails: chatDetails,
+                                  //     ),
+                                  //   ),
+                                  // );
                                 }
-                              });
-                            },
-                            onTap: () {
-                              if (_selectionProvider.selectionMode) {
-                                _selectionProvider.addOrRemoveMessage(message);
-                                setState(() {});
-                              } else {
-                                // Navigator.push(
-                                //   context,
-                                //   MaterialPageRoute(
-                                //     builder: (context) => ChatPage(
-                                //       chatDetails: chatDetails,
-                                //     ),
-                                //   ),
-                                // );
-                              }
-                            },
-                            child: _messageCard(message),
+                              },
+                              child: _messageCard(message),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    Align(
-                      alignment: Alignment.center,
-                      child: Visibility(
-                        visible: _apiProcess,
-                        child: SizedBox(
-                          height: 100,
-                          width: 250,
-                          child: Lottie.asset(
-                            "assets/lottie/dots_loading.json",
-                            repeat: true,
+                      Align(
+                        alignment: Alignment.center,
+                        child: Visibility(
+                          visible: _apiProcess,
+                          child: SizedBox(
+                            height: 100,
+                            width: 250,
+                            child: Lottie.asset(
+                              "assets/lottie/dots_loading.json",
+                              repeat: true,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    JelloIn(
-                      child: FutureBuilder(
-                          future: LocalServices.hasInternet(),
-                          builder: (context, AsyncSnapshot<bool> hasInternet) {
-                            if (hasInternet.hasData) {
-                              if (hasInternet.data!) {
-                                return SafeArea(
-                                  child: Row(
-                                    children: [
-                                      AvatarGlow(
-                                        animate: _isListening,
-                                        endRadius: _isListening ? 55 : 20,
-                                        child: TextButton(
-                                            onPressed: () {
-                                              if (!_apiProcess) {
-                                                _toggleRecording();
-                                              }
-                                            },
-                                            child: _isListening
-                                                ? const Icon(
-                                                    Icons.stop_circle,
-                                                    color: Colors.red,
-                                                  )
-                                                : const Icon(
-                                                    Icons.mic,
-                                                    color: kPrimaryColor,
-                                                  )),
-                                      ),
-                                      const SizedBox(
-                                          width: kDefaultPadding / 3),
-                                      Expanded(
-                                        child: Container(
-                                          //color: Colors.grey.shade300,
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: kDefaultPadding * 0.40,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            //color: kPrimaryColor.withOpacity(0.05),
-                                            borderRadius:
-                                                BorderRadius.circular(40),
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              Expanded(
-                                                child: TextField(
-                                                  maxLines: 8,
-                                                  minLines: 1,
-                                                  enabled: !_apiProcess,
-                                                  controller: _promptController,
-                                                  decoration: InputDecoration(
-                                                    contentPadding:
-                                                        const EdgeInsets.all(
-                                                            12),
-                                                    //border: InputBorder.none,
-                                                    hintText:
-                                                        t(context).typeMessage,
+                      JelloIn(
+                        child: FutureBuilder(
+                            future: LocalServices.hasInternet(),
+                            builder:
+                                (context, AsyncSnapshot<bool> hasInternet) {
+                              if (hasInternet.hasData) {
+                                if (hasInternet.data!) {
+                                  return SafeArea(
+                                    child: Row(
+                                      children: [
+                                        AvatarGlow(
+                                          animate: _isListening,
+                                          endRadius: _isListening ? 55 : 20,
+                                          child: TextButton(
+                                              onPressed: () {
+                                                if (!_apiProcess) {
+                                                  _toggleRecording();
+                                                }
+                                              },
+                                              child: _isListening
+                                                  ? const Icon(
+                                                      Icons.stop_circle,
+                                                      color: Colors.red,
+                                                    )
+                                                  : const Icon(
+                                                      Icons.mic,
+                                                      color: kPrimaryColor,
+                                                    )),
+                                        ),
+                                        const SizedBox(
+                                            width: kDefaultPadding / 3),
+                                        Expanded(
+                                          child: Container(
+                                            //color: Colors.grey.shade300,
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal:
+                                                  kDefaultPadding * 0.40,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              //color: kPrimaryColor.withOpacity(0.05),
+                                              borderRadius:
+                                                  BorderRadius.circular(40),
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                Expanded(
+                                                  child: TextField(
+                                                    maxLines: 8,
+                                                    minLines: 1,
+                                                    enabled: !_apiProcess,
+                                                    controller:
+                                                        _promptController,
+                                                    decoration: InputDecoration(
+                                                      contentPadding:
+                                                          const EdgeInsets.all(
+                                                              12),
+                                                      //border: InputBorder.none,
+                                                      hintText: t(context)
+                                                          .typeMessage,
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
-                                              TextButton(
-                                                onPressed: () async {
-                                                  if (await LocalServices
-                                                      .hasInternet()) {
-                                                    _sendText();
-                                                  }
-                                                  setState(() {});
-                                                },
-                                                child: _apiProcess
-                                                    ? SizedBox(
-                                                        width: 40,
-                                                        height: 40,
-                                                        child: Lottie.asset(
-                                                          "assets/lottie/message_delivery.json",
-                                                          repeat: true,
+                                                TextButton(
+                                                  onPressed: () async {
+                                                    if (await LocalServices
+                                                        .hasInternet()) {
+                                                      _sendText();
+                                                      prompts += 1;
+                                                      if (prompts % 2 == 0) {
+                                                        _showInterstitialAd();
+                                                      }
+                                                    }
+                                                    setState(() {});
+                                                  },
+                                                  child: _apiProcess
+                                                      ? SizedBox(
+                                                          width: 40,
+                                                          height: 40,
+                                                          child: Lottie.asset(
+                                                            "assets/lottie/message_delivery.json",
+                                                            repeat: true,
+                                                          ),
+                                                        )
+                                                      : const Icon(
+                                                          Icons.send,
+                                                          color: kPrimaryColor,
                                                         ),
-                                                      )
-                                                    : const Icon(
-                                                        Icons.send,
-                                                        color: kPrimaryColor,
-                                                      ),
-                                              ),
-                                            ],
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                );
+                                      ],
+                                    ),
+                                  );
+                                }
                               }
-                            }
-                            return noNet();
-                          }),
-                    ),
-                    const SizedBox(height: 16.0),
-                  ],
+                              return noNet();
+                            }),
+                      ),
+                      const SizedBox(height: 16.0),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -408,8 +456,16 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   AppBar buildAppBar() {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     return AppBar(
       automaticallyImplyLeading: false,
+      flexibleSpace: Container(
+        decoration: const BoxDecoration(
+            gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: <Color>[kSecondaryColor, kPrimaryColor])),
+      ),
       title: _selectionProvider.selectionMode
           ? Text(_selectionProvider.messages.length.toString())
           : InkWell(
@@ -420,7 +476,7 @@ class _ChatPageState extends State<ChatPage> {
                 children: [
                   BounceInDown(
                     child: const CircleAvatar(
-                      radius: 30,
+                      radius: 25,
                       backgroundImage: AssetImage("assets/images/pastor.png"),
                     ),
                   ),
@@ -432,14 +488,20 @@ class _ChatPageState extends State<ChatPage> {
                         children: [
                           Text(
                             t(context).pastorJacob, // AI Pastor
-                            style: const TextStyle(
-                                fontSize: 16, color: Colors.white),
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: themeProvider.isDarkMode
+                                  ? Colors.white
+                                  : Colors.black,
+                            ),
                           ),
                           Text(
                             widget.chatDetails?.title ?? '',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
-                              color: Colors.white,
+                              color: themeProvider.isDarkMode
+                                  ? Colors.white
+                                  : Colors.black,
                               overflow: TextOverflow.ellipsis,
                             ),
                           )
@@ -492,6 +554,9 @@ class _ChatPageState extends State<ChatPage> {
           onPressed: () {
             setState(() {
               _autoPlay = !_autoPlay;
+              if (!_autoPlay) {
+                stop();
+              }
               LocalServices.setAutoPlay(_autoPlay);
             });
           },
@@ -579,7 +644,7 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   _toggleRecording() {
-    _apiServices.toggleRecording(
+    apiServices.toggleRecording(
       onResult: (text) => setState(
         () {
           _promptController.text = text;
@@ -612,7 +677,7 @@ class _ChatPageState extends State<ChatPage> {
       stars == null
           ? [_buildCancelButton()]
           : [
-              _buildCancelButton(),
+              //_buildCancelButton(),
               _buildLaterButton(),
               _buildOkButton(stars),
             ];
@@ -633,7 +698,8 @@ class _ChatPageState extends State<ChatPage> {
         },
         child: Text(
           t(context).ok.toUpperCase(),
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: const TextStyle(
+              fontWeight: FontWeight.bold, color: kSuccessColor),
         ),
       );
 
@@ -646,7 +712,8 @@ class _ChatPageState extends State<ChatPage> {
         },
         child: Text(
           t(context).later.toUpperCase(),
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: const TextStyle(
+              fontWeight: FontWeight.bold, color: kSuccessColor),
         ),
       );
 
@@ -658,7 +725,8 @@ class _ChatPageState extends State<ChatPage> {
         },
         child: Text(
           t(context).cancel.toUpperCase(),
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: const TextStyle(
+              fontWeight: FontWeight.bold, color: kSuccessColor),
         ),
       );
 
@@ -669,28 +737,27 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Future<bool> _checkVersion() async {
-    final newVersion = NewVersion(
-      androidId: playStoreId, //"com.snapchat.android",
-      iOSId: appleStoreId,
-    );
     try {
-      final status = await newVersion.getVersionStatus().then((value) {
+      VersionStatus? status = await newVersion.getVersionStatus().then((value) {
         Future.delayed(const Duration(seconds: 10), () {
-          if (value?.localVersion != value?.storeVersion) {
-            newVersion.showUpdateDialog(
-              context: context,
-              versionStatus: value!,
-              dialogText: t(context).updateText,
-              dialogTitle: t(context).updateAvailable,
-              dismissButtonText: t(context).later,
-              updateButtonText: t(context).update,
-            );
+          if (value != null) {
+            if (value.canUpdate) {
+              newVersion.showUpdateDialog(
+                context: context,
+                versionStatus: value,
+                dialogText: t(context).updateText,
+                dialogTitle: t(context).updateAvailable,
+                dismissButtonText: t(context).later,
+                updateButtonText: t(context).update,
+              );
+            }
           }
         });
+        return null;
       });
       if (kDebugMode) {
         print(
-          "APP version ${status?.localVersion} - Store version ${status?.storeVersion}",
+          "APP version ${status?.localVersion} - Store version ${status?.storeVersion} ${status?.canUpdate}",
         );
       }
     } on Exception catch (e) {
@@ -707,7 +774,7 @@ class _ChatPageState extends State<ChatPage> {
     if (await LocalServices.firstVisit()) {
       Timer(const Duration(minutes: 1), () {
         setState(() {
-          isPopupActive = true;
+          firstVisitVar = true;
         });
       });
     }
@@ -731,14 +798,14 @@ class _ChatPageState extends State<ChatPage> {
       Locale locale = Localizations.localeOf(context);
       String languageCode = locale.languageCode;
 
-      if (kDebugMode) {
-        print(locale.languageCode);
-      }
       if (languageCode == "fr") {
         french = true;
       }
       widget.chatDetails!.title =
-          await _apiServices.generateTitle(message.text, french: french);
+          await apiServices.generateTitle(message.text, french: french);
+      if (kDebugMode) {
+        print("LOG: Title ${widget.chatDetails?.title}");
+      }
     }
 
     chat!.details.value = widget.chatDetails;
@@ -747,10 +814,16 @@ class _ChatPageState extends State<ChatPage> {
         "LOG: chat.details.value.lastMessage ${chat?.details.value?.lastMessage}");
     debugPrint("LOG: chat.details.value.id ${chat?.details.value?.id}");
 
-    chat!.summary += await _apiServices.generateSummary(message, french);
+    chat!.summary += await apiServices.generateSummary(message, french);
+    if (kDebugMode) {
+      print("LOG: Summary ${chat?.summary}");
+    }
     chat = await _isarServices.saveChat(chat!, message);
-    _generatedText = await _apiServices.generateReply(message.text,
+    _generatedText = await apiServices.generateReply(message.text,
         context: chat?.summary, french: french);
+    if (kDebugMode) {
+      print("LOG: Title $_generatedText");
+    }
     final messageResponse =
         Message(text: _generatedText, date: DateTime.now(), isSender: false);
     setState(() {
@@ -771,8 +844,7 @@ class _ChatPageState extends State<ChatPage> {
       print("New title is: ${widget.chatDetails?.title}");
     }
 
-    chat!.summary +=
-        await _apiServices.generateSummary(messageResponse, french);
+    chat!.summary += await apiServices.generateSummary(messageResponse, french);
     chat = await _isarServices.saveChat(chat!, messageResponse);
   }
 
@@ -850,32 +922,30 @@ class _ChatPageState extends State<ChatPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        Card(
-          color: Colors.transparent,
-          child: Container(
-            //color: Colors.transparent,
-            padding: const EdgeInsets.symmetric(
-              horizontal: kDefaultPadding * 0.75,
-              vertical: kDefaultPadding / 2,
-            ),
-            margin: message.isSender
-                ? const EdgeInsets.fromLTRB(75, 0, 0, 0)
-                : const EdgeInsets.fromLTRB(0, 0, 75, 0),
-            decoration: BoxDecoration(
+        Container(
+          //color: Colors.transparent,
+          padding: const EdgeInsets.symmetric(
+            horizontal: kDefaultPadding * 0.75,
+            vertical: kDefaultPadding / 2,
+          ),
+          margin: message.isSender
+              ? const EdgeInsets.fromLTRB(75, 0, 0, 0)
+              : const EdgeInsets.fromLTRB(0, 0, 75, 0),
+          decoration: BoxDecoration(
+            color: _selectionProvider.containsMessage(message)
+                ? Colors.grey
+                : kPrimaryColor.withOpacity(message.isSender ? 1 : 0.3),
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: Text(
+            message.text,
+            style: TextStyle(
               color: _selectionProvider.containsMessage(message)
-                  ? Colors.white
-                  : kPrimaryColor.withOpacity(message.isSender ? 1 : 0.3),
-              borderRadius: BorderRadius.circular(30),
-            ),
-            child: Text(
-              message.text,
-              style: TextStyle(
-                color: _selectionProvider.containsMessage(message)
-                    ? kPrimaryColor
-                    : message.isSender
-                        ? Colors.white
-                        : Theme.of(context).textTheme.bodyLarge!.color,
-              ),
+                  ? kPrimaryColor
+                  : message.isSender
+                      ? Colors.white
+                      : Theme.of(context).textTheme.bodyLarge!.color,
+              fontSize: 17,
             ),
           ),
         ),

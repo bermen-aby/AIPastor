@@ -1,14 +1,16 @@
 import 'package:ai_pastor/models/chat_details.dart';
 import 'package:ai_pastor/provider/selection_provider.dart';
-import 'package:ai_pastor/provider/theme_provider.dart';
+import 'package:ai_pastor/services/ad_mob_services.dart';
 import 'package:ai_pastor/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:grouped_list/grouped_list.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:rate_my_app/rate_my_app.dart';
 import '../../services/isar_services.dart';
+import '../../services/theme_services.dart';
 import '../../utils/dissmissible_widget.dart';
 import '../../utils/translate.dart';
 import '/pages/chat_page/chat_page.dart';
@@ -31,15 +33,27 @@ class _ChatsListPageState extends State<ChatsListPage> {
   late SelectionProvider _selectionProvider;
   final IsarServices _isarServices = IsarServices();
   ChatDetails? _newChatDetails;
+  BannerAd? _banner;
 
   @override
   void initState() {
     super.initState();
     _selectionProvider = Provider.of<SelectionProvider>(context, listen: false);
     _selectionProvider.init();
-    // final theme = Provider.of<ThemeProvider>(context, listen: false);
-    // SystemChrome.setSystemUIOverlayStyle(
-    //     theme.isDarkMode ? darkOverlayStyle : lightOverlayStyle);
+    _createBannerAd();
+  }
+
+  void _createBannerAd() {
+    try {
+      _banner = BannerAd(
+        size: AdSize.fullBanner,
+        adUnitId: AdMobServices.bannerAdUnitId,
+        listener: AdMobServices.bannerAdListener,
+        request: const AdRequest(),
+      )..load();
+    } on Exception catch (e) {
+      debugPrint("LOG: error creating/loading banner: $e");
+    }
   }
 
   @override
@@ -72,7 +86,13 @@ class _ChatsListPageState extends State<ChatsListPage> {
             color: Colors.white,
           ),
         ),
-        //bottomNavigationBar: buildBottomNavigationBar(),
+        bottomNavigationBar: _banner == null
+            ? Container()
+            : Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                height: 52,
+                child: AdWidget(ad: _banner!),
+              ),
       ),
     );
   }
@@ -80,6 +100,13 @@ class _ChatsListPageState extends State<ChatsListPage> {
   AppBar buildAppBar() {
     return AppBar(
       automaticallyImplyLeading: false,
+      flexibleSpace: Container(
+        decoration: const BoxDecoration(
+            gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: <Color>[kSecondaryColor, kPrimaryColor])),
+      ),
       leading: _selectionProvider.selectionMode
           ? IconButton(
               onPressed: () => setState(() {
@@ -93,16 +120,17 @@ class _ChatsListPageState extends State<ChatsListPage> {
         children: [
           if (_selectionProvider.selectionMode)
             Text(_selectionProvider.chatsDetails.length.toString()),
-          Expanded(
+          const Expanded(
             child: Align(
               alignment: Alignment.center,
               child: Text(
                 "Chats",
                 style: TextStyle(
-                  color: Provider.of<ThemeProvider>(context, listen: false)
-                          .isDarkMode
-                      ? Colors.white
-                      : kPrimaryColor,
+                  color: Colors.white,
+                  // Provider.of<ThemeProvider>(context, listen: false)
+                  //         .isDarkMode
+                  //     ? Colors.white
+                  //     : kPrimaryColor,
                   fontWeight: FontWeight.bold,
                   fontSize: 23.5,
                 ),
@@ -130,88 +158,91 @@ class _ChatsListPageState extends State<ChatsListPage> {
   }
 
   Widget body() {
-    return Column(
-      children: [
-        Expanded(
-          child: FutureBuilder(
-            future: _isarServices.getAllChatSmall(),
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                if (snapshot.data!.isEmpty) {
-                  _empty();
-                } else {
-                  return GroupedListView<ChatDetails, DateTime>(
-                    padding: const EdgeInsets.all(8),
-                    reverse: true,
-                    order: GroupedListOrder.ASC,
-                    useStickyGroupSeparators: true,
-                    shrinkWrap: true,
-                    groupHeaderBuilder: (element) => const SizedBox(),
-                    elements: snapshot.data as List<ChatDetails>,
-                    groupBy: (chatSmall) => DateTime(
-                      chatSmall.date.year,
-                      chatSmall.date.month,
-                      chatSmall.date.day,
-                    ),
-                    itemBuilder: (context, ChatDetails chatDetails) {
-                      if (_newChatDetails != null) {
-                        if (_newChatDetails!.id == chatDetails.id) {
-                          setState(() {
-                            chatDetails = _newChatDetails!;
-                          });
-                        }
-                      }
-                      return DissmissibleWidget(
-                        key: Key(chatDetails.id.toString()),
-                        item: chatDetails,
-                        onDismissed: (direction) async {
-                          await _isarServices
-                              .removeChatFromDetails(chatDetails);
-                          setState(() {
-                            snapshot.data!.remove(chatDetails);
-                          });
-                        },
-                        child: ChatCard(
-                          chat: chatDetails,
-                          longPress: () {
+    return Container(
+      decoration: ThemeServices().backgroundImage(context),
+      child: Column(
+        children: [
+          Expanded(
+            child: FutureBuilder(
+              future: _isarServices.getAllChatSmall(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  if (snapshot.data!.isEmpty) {
+                    _empty();
+                  } else {
+                    return GroupedListView<ChatDetails, DateTime>(
+                      padding: const EdgeInsets.all(8),
+                      reverse: true,
+                      order: GroupedListOrder.ASC,
+                      useStickyGroupSeparators: true,
+                      shrinkWrap: true,
+                      groupHeaderBuilder: (element) => const SizedBox(),
+                      elements: snapshot.data as List<ChatDetails>,
+                      groupBy: (chatSmall) => DateTime(
+                        chatSmall.date.year,
+                        chatSmall.date.month,
+                        chatSmall.date.day,
+                      ),
+                      itemBuilder: (context, ChatDetails chatDetails) {
+                        if (_newChatDetails != null) {
+                          if (_newChatDetails!.id == chatDetails.id) {
                             setState(() {
-                              _selectionProvider.selectionMode =
-                                  !_selectionProvider.selectionMode;
+                              chatDetails = _newChatDetails!;
+                            });
+                          }
+                        }
+                        return DissmissibleWidget(
+                          key: Key(chatDetails.id.toString()),
+                          item: chatDetails,
+                          onDismissed: (direction) async {
+                            await _isarServices
+                                .removeChatFromDetails(chatDetails);
+                            setState(() {
+                              snapshot.data!.remove(chatDetails);
+                            });
+                          },
+                          child: ChatCard(
+                            chat: chatDetails,
+                            longPress: () {
+                              setState(() {
+                                _selectionProvider.selectionMode =
+                                    !_selectionProvider.selectionMode;
+                                if (_selectionProvider.selectionMode) {
+                                  _selectionProvider
+                                      .addOrRemoveChatDetails(chatDetails);
+                                }
+                              });
+                            },
+                            press: () {
                               if (_selectionProvider.selectionMode) {
                                 _selectionProvider
                                     .addOrRemoveChatDetails(chatDetails);
-                              }
-                            });
-                          },
-                          press: () {
-                            if (_selectionProvider.selectionMode) {
-                              _selectionProvider
-                                  .addOrRemoveChatDetails(chatDetails);
-                              setState(() {});
-                            } else {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ChatPage(
-                                    chatDetails: chatDetails,
-                                    rateMyApp: widget.rateMyApp,
+                                setState(() {});
+                              } else {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ChatPage(
+                                      chatDetails: chatDetails,
+                                      rateMyApp: widget.rateMyApp,
+                                    ),
                                   ),
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                      );
-                    },
-                  );
+                                );
+                              }
+                            },
+                          ),
+                        );
+                      },
+                    );
+                  }
                 }
-              }
 
-              return _empty();
-            },
+                return _empty();
+              },
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

@@ -7,6 +7,7 @@ import 'package:ai_pastor/pages/onboarding/slides/donation.dart';
 import 'package:ai_pastor/utils/translate.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:new_version/new_version.dart';
 import 'package:provider/provider.dart';
 import 'package:rate_my_app/rate_my_app.dart';
 import '../../provider/theme_provider.dart';
@@ -26,6 +27,30 @@ class _DrawerMenuState extends State<DrawerMenu> {
     color: Colors.white,
     fontWeight: FontWeight.w700,
   );
+  VersionStatus? status;
+  String versionText = "";
+  bool canUpdate = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => init());
+  }
+
+  init() async {
+    status = await newVersion.getVersionStatus().then(
+      (value) {
+        if (value != null) {
+          versionText = value.localVersion;
+          if (value.canUpdate) {
+            canUpdate = true;
+          }
+        }
+        return null;
+      },
+    );
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,86 +66,114 @@ class _DrawerMenuState extends State<DrawerMenu> {
             ),
           ),
           child: InkWell(
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.only(
-                    top: 60,
-                    bottom: 20,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.only(
+                      top: 60,
+                      bottom: 20,
+                    ),
+                    width: double.infinity,
+                    //height: 600,
+                    child: Column(
+                      children: const [
+                        CircleAvatar(
+                          radius: 120,
+                          backgroundImage: AssetImage(
+                            "assets/images/pastor.png",
+                          ),
+                        ),
+                        SizedBox(
+                          height: 15,
+                        ),
+                        Text(
+                          "AI PASTOR",
+                          style: textButtonStyle,
+                        ),
+                        Text(
+                          "Jacob",
+                          style: textButtonStyle,
+                        ),
+                      ],
+                    ),
                   ),
-                  width: double.infinity,
-                  //height: 600,
-                  child: Column(
-                    children: const [
-                      CircleAvatar(
-                        radius: 120,
-                        backgroundImage: AssetImage(
-                          "assets/images/pastor.png",
+                  _buildButton(
+                    const Icon(Icons.help_outline),
+                    t(context).howItWorks,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => OnboardingPage(
+                            rateMyApp: widget.rateMyApp,
+                          ),
                         ),
-                      ),
-                      SizedBox(
-                        height: 15,
-                      ),
-                      Text(
-                        "AI PASTOR",
-                        style: textButtonStyle,
-                      ),
-                      Text(
-                        "Jacob",
-                        style: textButtonStyle,
-                      ),
-                    ],
+                      );
+                    },
                   ),
-                ),
-                _buildButton(
-                  const Icon(Icons.help_outline),
-                  t(context).howItWorks,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => OnboardingPage(
-                          rateMyApp: widget.rateMyApp,
+                  _buildButton(
+                    const Icon(Icons.monetization_on_outlined),
+                    t(context).donate,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const Donation(
+                            slideNumber: 3,
+                            donatePageOnly: true,
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                ),
-                _buildButton(
-                  const Icon(Icons.monetization_on_outlined),
-                  t(context).donate,
-                  onTap: () {
-                    Navigator.push(
+                      );
+                    },
+                  ),
+                  _buildButton(const Icon(Icons.star_outline_outlined),
+                      t(context).rateTheApp, onTap: () {
+                    widget.rateMyApp.showStarRateDialog(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) => const Donation(
-                          slideNumber: 3,
-                          donatePageOnly: true,
-                        ),
-                      ),
+                      title: t(context).rateTheApp,
+                      message: t(context).rateAppMessage,
+                      starRatingOptions:
+                          const StarRatingOptions(initialRating: 4),
+                      actionsBuilder: actionsBuilder,
                     );
-                  },
-                ),
-                _buildButton(const Icon(Icons.star_outline_outlined),
-                    t(context).rateTheApp, onTap: () {
-                  widget.rateMyApp.showStarRateDialog(
-                    context,
-                    title: t(context).rateTheApp,
-                    message: t(context).rateAppMessage,
-                    starRatingOptions:
-                        const StarRatingOptions(initialRating: 4),
-                    actionsBuilder: actionsBuilder,
-                  );
-                }),
-                ChangeLanguageWidget(setstate: () {
-                  setState(() {});
-                }),
-                const ChangeThemeButtonWidget(),
-              ],
+                  }),
+                  const ChangeThemeButtonWidget(),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  ChangeLanguageWidget(setstate: () {
+                    setState(() {});
+                  }),
+                  const SizedBox(
+                    height: 45,
+                  ),
+                  Text(
+                    "Version $versionText",
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  if (canUpdate)
+                    TextButton(
+                      onPressed: _showUpdate,
+                      child: Text(t(context).update),
+                    )
+                ],
+              ),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  _showUpdate() {
+    newVersion.showUpdateDialog(
+      context: context,
+      versionStatus: status!,
+      dialogText: t(context).updateText,
+      dialogTitle: t(context).updateAvailable,
+      dismissButtonText: t(context).later,
+      updateButtonText: t(context).update,
     );
   }
 

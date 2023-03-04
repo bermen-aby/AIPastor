@@ -42,7 +42,8 @@ class ChangeLanguageWidget extends StatelessWidget {
         value: item,
         child: Text(
           item,
-          style: buttonStyle,
+          style: const TextStyle(
+              fontWeight: FontWeight.w700, fontSize: 15, color: kSuccessColor),
         ),
       );
 }

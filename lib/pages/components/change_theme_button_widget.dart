@@ -1,4 +1,5 @@
 import 'package:ai_pastor/services/local_services.dart';
+import 'package:ai_pastor/variables.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
@@ -26,13 +27,16 @@ class ChangeThemeButtonWidget extends StatelessWidget {
         onTap: () {},
         leading: const Icon(Icons.dark_mode_outlined, color: Colors.white),
         trailing: Switch.adaptive(
-          activeTrackColor: Colors.white,
-          thumbColor: MaterialStateProperty.all<Color>(Colors.white),
+          trackColor: MaterialStateProperty.resolveWith((states) =>
+              themeProvider.isDarkMode ? Colors.black : Colors.white),
+          //activeTrackColor: Colors.white,
+          thumbColor: MaterialStateProperty.all<Color>(Colors.green),
           value: themeProvider.isDarkMode,
           onChanged: (value) {
             final provider = Provider.of<ThemeProvider>(context, listen: false);
             LocalServices.setDarkMode(value);
             provider.toggleTheme(value);
+            isDarkModeVar = value;
           },
         ),
       ),

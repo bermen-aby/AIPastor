@@ -29,6 +29,7 @@ class _DonationState extends State<Donation> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: kPrimaryColor,
       body: SingleChildScrollView(
         child: Container(
           color: kPrimaryColor,

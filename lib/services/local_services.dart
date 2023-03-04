@@ -1,6 +1,8 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../variables.dart';
+
 class LocalServices {
   static Future<bool> hasInternet() async {
     // final bool response = await InternetConnectionChecker().hasConnection;
@@ -28,15 +30,19 @@ class LocalServices {
   // DARK MODE
   static Future<bool> isDarkMode() async {
     final prefs = await SharedPreferences.getInstance();
-    bool isDarkMode;
-    prefs.getBool("dark_mode") == true ? isDarkMode = true : isDarkMode = false;
-    return isDarkMode;
+    bool darkMode;
+    prefs.getBool("dark_mode") == true ? darkMode = true : darkMode = false;
+    isDarkModeVar = darkMode;
+    return darkMode;
   }
 
   static Future<bool?> setDarkMode(
     bool? isDarkMode,
   ) async {
     final prefs = await SharedPreferences.getInstance();
+    if (isDarkMode != null) {
+      isDarkModeVar = isDarkMode;
+    }
     if (isDarkMode == true) {
       return prefs.setBool("dark_mode", true);
     }

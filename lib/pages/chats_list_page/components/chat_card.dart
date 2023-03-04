@@ -1,5 +1,4 @@
 import 'package:ai_pastor/provider/selection_provider.dart';
-import 'package:ai_pastor/provider/theme_provider.dart';
 import 'package:ai_pastor/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -66,68 +65,85 @@ class _ChatCardState extends State<ChatCard> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Provider.of<ThemeProvider>(context, listen: false);
-    final title = theme.isDarkMode ? titleDark : titleLight;
-    final lastMsg = theme.isDarkMode ? lastMsgDark : lastMsgLight;
-    final timeTxt = theme.isDarkMode ? dateDark : dateLight;
-    return GestureDetector(
-      onTap: widget.press,
-      onLongPress: widget.longPress,
-      child: Card(
-        shadowColor: kPrimaryColor,
-        color: _selectionProvider.containsChatDetails(widget.chat)
-            ? Colors.white
-            : kSecondaryColor.withOpacity(0.25),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-              horizontal: kDefaultPadding, vertical: kDefaultPadding * 0.75),
-          child: SizedBox(
-            height: 100,
-            //alignment: Alignment.centerLeft,
-            child: Column(
-              children: [
-                Align(
-                  alignment: Alignment.topLeft,
-                  child: Text(
-                    widget.chat.title,
-                    maxLines: 1,
-                    style: _selectionProvider.containsChatDetails(widget.chat)
-                        ? const TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
-                            overflow: TextOverflow.ellipsis,
-                            color: kPrimaryColor)
-                        : title,
-                  ),
-                ),
-                const SizedBox(
-                  height: 5,
-                ),
-                Opacity(
-                  opacity: 0.90,
-                  child: Text(Utils().removeEmptyLines(widget.chat.lastMessage),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: _selectionProvider.containsChatDetails(widget.chat)
-                          ? const TextStyle(color: kPrimaryColor)
-                          : lastMsg),
-                ),
-                const Spacer(),
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: Opacity(
-                    opacity: 0.64,
+    final title = titleDark; //theme.isDarkMode ? titleDark : titleLight;
+    final lastMsg =
+        lastMsgDark; //theme.isDarkMode ? lastMsgDark : lastMsgLight;
+    final timeTxt = dateDark; //theme.isDarkMode ? dateDark : dateLight;
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: GestureDetector(
+        onTap: widget.press,
+        onLongPress: widget.longPress,
+        child: Container(
+          //shadowColor: kPrimaryColor.withOpacity(0.5),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: _selectionProvider.containsChatDetails(widget.chat)
+                ? Colors.grey
+                : kPrimaryColor,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.25),
+                blurRadius: 5.0,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+                horizontal: kDefaultPadding, vertical: kDefaultPadding * 0.75),
+            child: SizedBox(
+              height: 100,
+              //alignment: Alignment.centerLeft,
+              child: Column(
+                children: [
+                  Align(
+                    alignment: Alignment.topLeft,
                     child: Text(
-                      widget.chat.date.year == DateTime.now().year
-                          ? DateFormat.MMMd().format(widget.chat.date)
-                          : DateFormat.yMMMd().format(widget.chat.date),
+                      widget.chat.title,
+                      maxLines: 1,
                       style: _selectionProvider.containsChatDetails(widget.chat)
-                          ? const TextStyle(color: kPrimaryColor)
-                          : timeTxt,
+                          ? const TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                              overflow: TextOverflow.ellipsis,
+                              color: kPrimaryColor)
+                          : title,
                     ),
                   ),
-                )
-              ],
+                  const SizedBox(
+                    height: 5,
+                  ),
+                  Opacity(
+                    opacity: 0.90,
+                    child: Text(
+                        Utils().removeEmptyLines(widget.chat.lastMessage),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style:
+                            _selectionProvider.containsChatDetails(widget.chat)
+                                ? const TextStyle(color: kPrimaryColor)
+                                : lastMsg),
+                  ),
+                  const Spacer(),
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: Opacity(
+                      opacity: 0.64,
+                      child: Text(
+                        widget.chat.date.year == DateTime.now().year
+                            ? DateFormat.MMMd().format(widget.chat.date)
+                            : DateFormat.yMMMd().format(widget.chat.date),
+                        style:
+                            _selectionProvider.containsChatDetails(widget.chat)
+                                ? const TextStyle(color: kPrimaryColor)
+                                : timeTxt,
+                      ),
+                    ),
+                  )
+                ],
+              ),
             ),
           ),
         ),

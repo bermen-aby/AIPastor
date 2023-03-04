@@ -9,6 +9,7 @@ import 'package:animate_do/animate_do.dart';
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
 import '/pages/chat_page/chat_page.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -47,10 +48,10 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  isDarkMode = await LocalServices.isDarkMode();
-  firstVisit = await LocalServices.firstVisit();
+  isDarkModeVar = await LocalServices.isDarkMode();
+  firstVisitVar = await LocalServices.firstVisit();
   await LocalServices.setLaunchCount();
-
+  MobileAds.instance.initialize();
   runApp(
     const MyApp(),
   );
@@ -62,12 +63,20 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  Future<dynamic> init() async {
+    serverData = await apiServices.fetchPosts();
+    print("LOG ${serverData.storeVersion}");
+
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = ThemeProvider();
+    init();
     return ChangeNotifierProvider(
       create: (context) {
-        if (!isDarkMode) {
+        if (!isDarkModeVar) {
           themeProvider.toggleTheme(false);
         } else {
           themeProvider.toggleTheme(true);
@@ -76,7 +85,7 @@ class MyApp extends StatelessWidget {
       },
       builder: (context, _) {
         SystemChrome.setSystemUIOverlayStyle(
-            isDarkMode ? darkOverlayStyle : lightOverlayStyle);
+            isDarkModeVar ? darkOverlayStyle : lightOverlayStyle);
 
         final themeProvider = Provider.of<ThemeProvider>(context, listen: true);
         return MultiProvider(
@@ -100,6 +109,7 @@ class MyApp extends StatelessWidget {
                 title: 'AI PASTOR',
                 home: JelloIn(
                   child: AnimatedSplashScreen(
+                    function: init,
                     backgroundColor: Theme.of(context).colorScheme.background,
                     splashIconSize: 1942,
                     splash: Container(
@@ -113,7 +123,7 @@ class MyApp extends StatelessWidget {
                       ),
                     ),
                     nextScreen: RateAppInitWidget(
-                      builder: (rateMyApp) => firstVisit
+                      builder: (rateMyApp) => firstVisitVar
                           ? OnboardingPage(
                               rateMyApp: rateMyApp,
                             )
