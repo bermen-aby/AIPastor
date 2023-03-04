@@ -58,6 +58,64 @@ class APIService {
     }
   }
 
+  Future<String> promptGPTTurbo(List<Map<String, String>> messages,
+      {bool? french}) async {
+    if (kDebugMode) {
+      //print("LOG: context: $context");
+    }
+    // List<Map<String, String>> dataMessages = [];
+    // if (french ?? false) {
+    //   dataMessages.add({
+    //     "role": "system",
+    //     "content":
+    //         "Vous êtes le Pasteur Jacob. Poursuivez la discussion en répondant à ce message et en ajoutant un verset biblique approprié si nécessaire",
+    //   });
+    // } else {
+    //   dataMessages.add({
+    //     "role": "system",
+    //     "content":
+    //         "You are Pastor Jacob. Continue the discussion by replying to this, and adding a revelant Bible verse if needed",
+    //   });
+    // }
+    // messages?.forEach((element) {
+    //   dataMessages.add({
+    //     "role": element.isSender ? "user" : "assistant",
+    //     "content": element.text,
+    //   });
+    // });
+    try {
+      Response response = await Dio().post(
+        "https://api.openai.com/v1/chat/completions",
+        data: {
+          "model": "gpt-3.5-turbo",
+          "messages": messages,
+          //"max_tokens": maxTokens,
+        },
+        options: Options(
+          headers: {
+            HttpHeaders.contentTypeHeader: "application/json",
+            HttpHeaders.authorizationHeader: "Bearer $apiKey",
+          },
+        ),
+      );
+      if (response.statusCode == 200) {
+        var generatedText = response.data['choices'][0]['text'];
+        return removeFirstNewline(generatedText);
+      } else {
+        throw Exception(
+            "Failed to generate reply. Status code: ${response.statusCode}");
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+      if (french ?? false) {
+        return "Erreur de génération de réponse. Veuillez réessayer plus tard";
+      }
+      return "Error generating reply. Please try again later";
+    }
+  }
+
   Future<String> generateSummary(Message message, bool? french) async {
     //final discussion = getDiscussion(textsList);
     // try {
@@ -132,7 +190,7 @@ class APIService {
           "prompt": inFrench
               ? "AI Pastor est une app de chat avec pasteur Jacob, assistant virtuel. En moins de 5 mots, donne un sujet à cette conversation dont le premier message de l'utilisateur est: $text ?"
               : "AI Pastor is a chat app with Pastor Jacob, virtual assistant. In less than 5 words, give a subject to this conversation whose first message from the user is: $text ?",
-          "temperature": 0.8,
+          "temperature": 0.3,
           "max_tokens": 20,
           "model": "text-curie-001",
         },
@@ -218,8 +276,6 @@ class APIService {
           },
         ),
       );
-
-      print("LOG response data: ${response.data}");
 
       if (response.data is List<dynamic>) {
         final List<dynamic> responseData = response.data;

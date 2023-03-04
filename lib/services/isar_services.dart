@@ -22,7 +22,7 @@ class IsarServices {
 
     final chat = await isar.chats.get(newChat.id) ?? Chat();
     chat
-      ..summary = newChat.summary
+      ..prompt = newChat.prompt
       ..details.value = newChat.details.value;
     late Message message;
 

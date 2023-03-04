@@ -65,7 +65,6 @@ class MyApp extends StatelessWidget {
 
   Future<dynamic> init() async {
     serverData = await apiServices.fetchPosts();
-    print("LOG ${serverData.storeVersion}");
 
     return true;
   }

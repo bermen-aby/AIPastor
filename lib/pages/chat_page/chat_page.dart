@@ -68,6 +68,8 @@ class _ChatPageState extends State<ChatPage> {
   late Chat? chat;
   late SelectionProvider _selectionProvider;
 
+  bool french = false;
+
   MenuItem itemCopy = MenuItem(text: 'Copy', icon: Icons.copy);
   MenuItem itemShare = MenuItem(text: 'Share', icon: Icons.share);
 
@@ -189,6 +191,28 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   initChatWithContext() async {
+    Locale locale = Localizations.localeOf(context);
+    String languageCode = locale.languageCode;
+
+    if (languageCode == "fr") {
+      french = true;
+    }
+    if (chat!.prompt.isEmpty) {
+      chat!.prompt.add({
+        "role": "system",
+        "content": french
+            ? "Vous êtes le Pasteur Jacob. Poursuivez la discussion en répondant à ce message et en ajoutant un verset biblique approprié si nécessaire"
+            : "You are Pastor Jacob. Continue the discussion by replying to this, and adding a revelant Bible verse if needed",
+      });
+      for (var element in messages) {
+        if (element.text != t(context).hello) {
+          chat!.prompt.add({
+            "role": element.isSender ? "user" : "assistant",
+            "content": element.text,
+          });
+        }
+      }
+    }
     widget.chatDetails =
         ChatDetails(title: t(context).newDiscussion, date: DateTime.now());
     chat = Chat()
@@ -788,7 +812,7 @@ class _ChatPageState extends State<ChatPage> {
       _promptController.clear();
       _apiProcess = true;
     });
-    bool french = false;
+
     widget.chatDetails ??=
         ChatDetails(title: t(context).newDiscussion, date: DateTime.now());
     widget.chatDetails!
@@ -814,13 +838,14 @@ class _ChatPageState extends State<ChatPage> {
         "LOG: chat.details.value.lastMessage ${chat?.details.value?.lastMessage}");
     debugPrint("LOG: chat.details.value.id ${chat?.details.value?.id}");
 
-    chat!.summary += await apiServices.generateSummary(message, french);
+    chat!.prompt.add({"role": "user", "content": message.text});
+    //await apiServices.generateSummary(message, french);
     if (kDebugMode) {
-      print("LOG: Summary ${chat?.summary}");
+      print("LOG: Summary ${chat?.prompt}");
     }
     chat = await _isarServices.saveChat(chat!, message);
-    _generatedText = await apiServices.generateReply(message.text,
-        context: chat?.summary, french: french);
+    _generatedText =
+        await apiServices.promptGPTTurbo(chat!.prompt, french: french);
     if (kDebugMode) {
       print("LOG: Title $_generatedText");
     }
@@ -844,7 +869,7 @@ class _ChatPageState extends State<ChatPage> {
       print("New title is: ${widget.chatDetails?.title}");
     }
 
-    chat!.summary += await apiServices.generateSummary(messageResponse, french);
+    chat!.prompt.add({"role": "assistant", "content": messageResponse.text});
     chat = await _isarServices.saveChat(chat!, messageResponse);
   }
 
