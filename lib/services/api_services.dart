@@ -61,7 +61,8 @@ class APIService {
   Future<String> promptGPTTurbo(List<Map<String, String>> messages,
       {bool? french}) async {
     if (kDebugMode) {
-      //print("LOG: context: $context");
+      print("LOG: promptGPTTurbo: messages: $messages");
+      print("LOG: promptGPTTurbo: french: $french");
     }
     // List<Map<String, String>> dataMessages = [];
     // if (french ?? false) {
@@ -98,8 +99,11 @@ class APIService {
           },
         ),
       );
+      print("LOG: apicall error response $response");
+      print(
+          "LOG: apicall error response code ${response.statusCode} ${response.statusMessage}");
       if (response.statusCode == 200) {
-        var generatedText = response.data['choices'][0]['text'];
+        var generatedText = response.data['choices'][0]['message']['content'];
         return removeFirstNewline(generatedText);
       } else {
         throw Exception(
@@ -107,7 +111,7 @@ class APIService {
       }
     } catch (e) {
       if (kDebugMode) {
-        print(e);
+        print("LOG: apicall error $e");
       }
       if (french ?? false) {
         return "Erreur de génération de réponse. Veuillez réessayer plus tard";

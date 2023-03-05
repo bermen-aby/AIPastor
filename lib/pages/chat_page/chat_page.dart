@@ -197,22 +197,7 @@ class _ChatPageState extends State<ChatPage> {
     if (languageCode == "fr") {
       french = true;
     }
-    if (chat!.prompt.isEmpty) {
-      chat!.prompt.add({
-        "role": "system",
-        "content": french
-            ? "Vous êtes le Pasteur Jacob. Poursuivez la discussion en répondant à ce message et en ajoutant un verset biblique approprié si nécessaire"
-            : "You are Pastor Jacob. Continue the discussion by replying to this, and adding a revelant Bible verse if needed",
-      });
-      for (var element in messages) {
-        if (element.text != t(context).hello) {
-          chat!.prompt.add({
-            "role": element.isSender ? "user" : "assistant",
-            "content": element.text,
-          });
-        }
-      }
-    }
+
     widget.chatDetails =
         ChatDetails(title: t(context).newDiscussion, date: DateTime.now());
     chat = Chat()
@@ -236,9 +221,22 @@ class _ChatPageState extends State<ChatPage> {
         );
       }
     }
-    // final theme = Provider.of<ThemeProvider>(context, listen: false);
-    // SystemChrome.setSystemUIOverlayStyle(
-    //     theme.isDarkMode ? darkOverlayStyle : lightOverlayStyle);
+    if (chat!.prompt.isEmpty) {
+      chat!.prompt.add({
+        "role": "system",
+        "content": french
+            ? "Vous êtes le Pasteur Jacob. Poursuivez la discussion en répondant à ce message et en ajoutant un verset biblique approprié si nécessaire"
+            : "You are Pastor Jacob. Continue the discussion by replying to this, and adding a revelant Bible verse if needed",
+      });
+      for (var element in messages) {
+        if (element.text != t(context).hello) {
+          chat!.prompt.add({
+            "role": element.isSender ? "user" : "assistant",
+            "content": element.text,
+          });
+        }
+      }
+    }
   }
 
   @override
@@ -847,7 +845,7 @@ class _ChatPageState extends State<ChatPage> {
     _generatedText =
         await apiServices.promptGPTTurbo(chat!.prompt, french: french);
     if (kDebugMode) {
-      print("LOG: Title $_generatedText");
+      print("LOG: response $_generatedText");
     }
     final messageResponse =
         Message(text: _generatedText, date: DateTime.now(), isSender: false);

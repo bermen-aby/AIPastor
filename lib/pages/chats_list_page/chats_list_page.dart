@@ -51,7 +51,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
         listener: AdMobServices.bannerAdListener,
         request: const AdRequest(),
       )..load();
-    } on Exception catch (e) {
+    } catch (e) {
       debugPrint("LOG: error creating/loading banner: $e");
     }
   }
