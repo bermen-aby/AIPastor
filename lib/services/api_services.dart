@@ -132,7 +132,7 @@ class APIService {
           "prompt": inFrench
               ? "AI Pastor est une app de chat avec pasteur Jacob, assistant virtuel. En moins de 5 mots, donne un sujet à cette conversation dont le premier message de l'utilisateur est: $text ?"
               : "AI Pastor is a chat app with Pastor Jacob, virtual assistant. In less than 5 words, give a subject to this conversation whose first message from the user is: $text ?",
-          "temperature": 0.8,
+          "temperature": 0.2,
           "max_tokens": 20,
           "model": "text-curie-001",
         },
@@ -219,7 +219,9 @@ class APIService {
         ),
       );
 
-      print("LOG response data: ${response.data}");
+      if (kDebugMode) {
+        print("LOG response data: ${response.data}");
+      }
 
       if (response.data is List<dynamic>) {
         final List<dynamic> responseData = response.data;

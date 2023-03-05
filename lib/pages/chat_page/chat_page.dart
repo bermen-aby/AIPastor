@@ -100,18 +100,26 @@ class _ChatPageState extends State<ChatPage> {
   void dispose() {
     _advancedDrawerController.dispose();
     _flutterTts.stop();
+    _interstitialAd?.dispose();
+    _titleController.dispose();
     super.dispose();
   }
 
   _createInterstitialAd() {
-    InterstitialAd.load(
-      adUnitId: AdMobServices.interstitialAdUnitId,
-      request: const AdRequest(),
-      adLoadCallback: InterstitialAdLoadCallback(
-        onAdLoaded: (ad) => _interstitialAd = ad,
-        onAdFailedToLoad: (error) => _interstitialAd = null,
-      ),
-    );
+    try {
+      InterstitialAd.load(
+        adUnitId: AdMobServices.interstitialAdUnitId,
+        request: const AdRequest(),
+        adLoadCallback: InterstitialAdLoadCallback(
+          onAdLoaded: (ad) => _interstitialAd = ad,
+          onAdFailedToLoad: (error) => _interstitialAd = null,
+        ),
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint("LOG: error creating/loading banner: $e");
+      }
+    }
   }
 
   void _showInterstitialAd() {

@@ -43,6 +43,15 @@ class _ChatsListPageState extends State<ChatsListPage> {
     _createBannerAd();
   }
 
+  @override
+  void dispose() {
+    _selectionProvider.dispose();
+    _advancedDrawerController.dispose();
+    _selectionProvider.dispose();
+    _titleController.dispose();
+    super.dispose();
+  }
+
   void _createBannerAd() {
     try {
       _banner = BannerAd(
@@ -51,7 +60,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
         listener: AdMobServices.bannerAdListener,
         request: const AdRequest(),
       )..load();
-    } on Exception catch (e) {
+    } catch (e) {
       debugPrint("LOG: error creating/loading banner: $e");
     }
   }
