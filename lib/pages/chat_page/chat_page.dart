@@ -102,6 +102,9 @@ class _ChatPageState extends State<ChatPage> {
   void dispose() {
     _advancedDrawerController.dispose();
     _flutterTts.stop();
+    _titleController.dispose();
+    _selectionProvider.dispose();
+    _interstitialAd?.dispose();
     super.dispose();
   }
 
