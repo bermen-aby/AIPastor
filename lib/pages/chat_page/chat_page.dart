@@ -7,6 +7,7 @@ import 'package:ai_pastor/provider/selection_provider.dart';
 import 'package:ai_pastor/provider/theme_provider.dart';
 import 'package:ai_pastor/services/theme_services.dart';
 import 'package:ai_pastor/utils/translate.dart';
+import 'package:ai_pastor/utils/utils.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:clipboard/clipboard.dart';
@@ -179,8 +180,8 @@ class _ChatPageState extends State<ChatPage> {
       if (chat != null) {
         messages = await _isarServices.getChatMessages(chat!);
         if (kDebugMode) {
-          print("LOG: Chat messages lenght ${chat!.messages.length}");
-          print("LOG: Messages lenght ${messages.length}");
+          print("LOG: Chat messages length ${chat!.messages.length}");
+          print("LOG: Messages length ${messages.length}");
         }
       }
     } else {
@@ -220,9 +221,26 @@ class _ChatPageState extends State<ChatPage> {
         );
       }
     }
-    // final theme = Provider.of<ThemeProvider>(context, listen: false);
-    // SystemChrome.setSystemUIOverlayStyle(
-    //     theme.isDarkMode ? darkOverlayStyle : lightOverlayStyle);
+
+    if (serverData.text != null) {
+      if (serverData.text!.isNotEmpty) {
+        String lastMsg = await LocalServices.getLastServerMsg();
+        if (lastMsg != serverData.text!) {
+          Future.delayed(const Duration(seconds: 5), () {
+            Utils.showServerMessage(
+              context,
+              serverData.title!,
+              serverData.text!,
+              t(context).ok,
+              () async {
+                await LocalServices.setLastServerMsg(serverData.text!);
+                Navigator.of(context).pop();
+              },
+            );
+          });
+        }
+      }
+    }
   }
 
   @override
@@ -317,15 +335,6 @@ class _ChatPageState extends State<ChatPage> {
                                   _selectionProvider
                                       .addOrRemoveMessage(message);
                                   setState(() {});
-                                } else {
-                                  // Navigator.push(
-                                  //   context,
-                                  //   MaterialPageRoute(
-                                  //     builder: (context) => ChatPage(
-                                  //       chatDetails: chatDetails,
-                                  //     ),
-                                  //   ),
-                                  // );
                                 }
                               },
                               child: _messageCard(message),
@@ -741,7 +750,7 @@ class _ChatPageState extends State<ChatPage> {
   Future<bool> checkConnection() async {
     connexion = await LocalServices.hasInternet();
     setState(() {});
-    return true;
+    return connexion;
   }
 
   Future<bool> _checkVersion() async {
@@ -753,7 +762,7 @@ class _ChatPageState extends State<ChatPage> {
               newVersion.showUpdateDialog(
                 context: context,
                 versionStatus: value,
-                dialogText: t(context).updateText,
+                dialogText: "${t(context).updateText} \n ${value.releaseNotes}",
                 dialogTitle: t(context).updateAvailable,
                 dismissButtonText: t(context).later,
                 updateButtonText: t(context).update,
@@ -761,6 +770,11 @@ class _ChatPageState extends State<ChatPage> {
             }
           }
         });
+        if (serverData.mandatoryUpdate &&
+            serverData.storeVersion == value?.storeVersion &&
+            value?.localVersion != value?.storeVersion) {
+          _checkVersion();
+        }
         return null;
       });
       if (kDebugMode) {
@@ -768,7 +782,7 @@ class _ChatPageState extends State<ChatPage> {
           "APP version ${status?.localVersion} - Store version ${status?.storeVersion} ${status?.canUpdate}",
         );
       }
-    } on Exception catch (e) {
+    } catch (e) {
       if (kDebugMode) {
         print(e);
       }

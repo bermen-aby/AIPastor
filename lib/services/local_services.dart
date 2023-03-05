@@ -97,6 +97,16 @@ class LocalServices {
     return prefs.setDouble("productsCache", version);
   }
 
+  static Future<String> getLastServerMsg() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString("lastServerMsg") ?? "";
+  }
+
+  static Future<bool> setLastServerMsg(String msg) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.setString("lastServerMsg", msg);
+  }
+
   // static Future<bool> isCacheActive() async {
   //   final prefs = await SharedPreferences.getInstance();
   //   bool _isCacheActive;

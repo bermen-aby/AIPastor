@@ -34,12 +34,13 @@ class _ChatsListPageState extends State<ChatsListPage> {
   final IsarServices _isarServices = IsarServices();
   ChatDetails? _newChatDetails;
   BannerAd? _banner;
+  bool adLoaded = false;
 
   @override
   void initState() {
     super.initState();
-    _selectionProvider = Provider.of<SelectionProvider>(context, listen: false);
-    _selectionProvider.init();
+    _selectionProvider = Provider.of<SelectionProvider>(context, listen: false)
+      ..init();
     WidgetsBinding.instance.addPostFrameCallback((_) => _createBannerAd());
   }
 
@@ -53,15 +54,18 @@ class _ChatsListPageState extends State<ChatsListPage> {
   }
 
   void _createBannerAd() {
+    setState(() {
+      adLoaded = true;
+    });
     try {
-      setState(() {
-        _banner = BannerAd(
-          size: AdSize.fullBanner,
-          adUnitId: AdMobServices.bannerAdUnitId,
-          listener: AdMobServices.bannerAdListener,
-          request: const AdRequest(),
-        )..load();
-      });
+      _banner = BannerAd(
+        size: AdSize.fullBanner,
+        adUnitId: AdMobServices.bannerAdUnitId,
+        listener: AdMobServices.bannerAdListener,
+        request: const AdRequest(),
+      )..load().then((value) => setState(() {
+            adLoaded = true;
+          }));
     } catch (e) {
       debugPrint("LOG: error creating/loading banner: $e");
     }
@@ -97,11 +101,13 @@ class _ChatsListPageState extends State<ChatsListPage> {
             color: Colors.white,
           ),
         ),
-        bottomNavigationBar: _banner == null
-            ? null
+        bottomNavigationBar: !adLoaded
+            ? const SizedBox(
+                height: 60,
+              )
             : Container(
                 margin: const EdgeInsets.only(bottom: 12),
-                height: 52,
+                height: 60,
                 child: AdWidget(ad: _banner!),
               ),
       ),
