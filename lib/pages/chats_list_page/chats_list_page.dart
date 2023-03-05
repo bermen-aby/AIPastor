@@ -40,26 +40,28 @@ class _ChatsListPageState extends State<ChatsListPage> {
     super.initState();
     _selectionProvider = Provider.of<SelectionProvider>(context, listen: false);
     _selectionProvider.init();
-    _createBannerAd();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _createBannerAd());
   }
 
   @override
   void dispose() {
     _selectionProvider.dispose();
     _advancedDrawerController.dispose();
-    _selectionProvider.dispose();
+    // _selectionProvider.dispose();
     _titleController.dispose();
     super.dispose();
   }
 
   void _createBannerAd() {
     try {
-      _banner = BannerAd(
-        size: AdSize.fullBanner,
-        adUnitId: AdMobServices.bannerAdUnitId,
-        listener: AdMobServices.bannerAdListener,
-        request: const AdRequest(),
-      )..load();
+      setState(() {
+        _banner = BannerAd(
+          size: AdSize.fullBanner,
+          adUnitId: AdMobServices.bannerAdUnitId,
+          listener: AdMobServices.bannerAdListener,
+          request: const AdRequest(),
+        )..load();
+      });
     } catch (e) {
       debugPrint("LOG: error creating/loading banner: $e");
     }
@@ -96,7 +98,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
           ),
         ),
         bottomNavigationBar: _banner == null
-            ? Container()
+            ? null
             : Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 height: 52,
