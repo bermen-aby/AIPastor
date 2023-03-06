@@ -32,6 +32,7 @@ class APIService {
               ? "Vous êtes le Pasteur Jacob. Poursuivez la discussion en répondant à ce message et en ajoutant un verset biblique approprié si nécessaire.:\n$context MOI: $prompt ? \n PASTEUR: "
               : "You are Pastor Jacob. Continue the discussion by replying to this, and adding a revelant Bible verse if needed:\n$context ME: $prompt ? \n PASTOR: ",
           "max_tokens": maxTokens,
+          "temperature": 0.3,
         },
         options: Options(
           headers: {
@@ -130,10 +131,9 @@ class APIService {
         'https://api.openai.com/v1/completions',
         data: {
           "prompt": inFrench
-              ? "AI Pastor est une app de chat avec pasteur Jacob, assistant virtuel. En moins de 5 mots, donne un sujet à cette conversation dont le premier message de l'utilisateur est: $text ?"
-              : "AI Pastor is a chat app with Pastor Jacob, virtual assistant. In less than 5 words, give a subject to this conversation whose first message from the user is: $text ?",
-          "temperature": 0.2,
-          "max_tokens": 20,
+              ? "En moins de 4 mots, donne un titre à ce message pour un blog: $text ?"
+              : "In less than 4 words, give a title to this post for a blog post: $text ?",
+          "temperature": 0.4,
           "model": "text-curie-001",
         },
         options: Options(
