@@ -128,7 +128,7 @@ class _DonationState extends State<Donation> {
   Widget _donateButton() {
     return ElevatedButton(
       onPressed: () async {
-        final url = Uri.parse("https://www.paypal.com/paypalme/alldayseason");
+        final url = Uri.parse("https://paypal.me/AIPastorJacob");
         if (await canLaunchUrl(url)) {
           launchUrl(url);
         }

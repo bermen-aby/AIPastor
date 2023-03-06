@@ -14,6 +14,8 @@ class Message {
 
   final chat = IsarLink<Chat>();
 
+  //final map = IsarLink<MessageMap>();
+
   Message({
     required this.text,
     required this.date,

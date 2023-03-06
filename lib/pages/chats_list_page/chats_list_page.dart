@@ -46,9 +46,9 @@ class _ChatsListPageState extends State<ChatsListPage> {
 
   @override
   void dispose() {
-    _selectionProvider.dispose();
+    //_selectionProvider.dispose();
     _advancedDrawerController.dispose();
-    // _selectionProvider.dispose();
+    _selectionProvider.dispose();
     _titleController.dispose();
     super.dispose();
   }
@@ -86,7 +86,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
         body: body(),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            Navigator.push(
+            Navigator.pushReplacement(
               context,
               MaterialPageRoute(
                 builder: (context) => ChatPage(
@@ -236,7 +236,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
                                     .addOrRemoveChatDetails(chatDetails);
                                 setState(() {});
                               } else {
-                                Navigator.push(
+                                Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => ChatPage(

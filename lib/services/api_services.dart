@@ -59,6 +59,68 @@ class APIService {
     }
   }
 
+  Future<String> promptGPTTurbo(List<Map<String, String>> messages,
+      {bool? french}) async {
+    if (kDebugMode) {
+      print("LOG: promptGPTTurbo: messages: $messages");
+      print("LOG: promptGPTTurbo: french: $french");
+    }
+    // List<Map<String, String>> dataMessages = [];
+    // if (french ?? false) {
+    //   dataMessages.add({
+    //     "role": "system",
+    //     "content":
+    //         "Vous êtes le Pasteur Jacob. Poursuivez la discussion en répondant à ce message et en ajoutant un verset biblique approprié si nécessaire",
+    //   });
+    // } else {
+    //   dataMessages.add({
+    //     "role": "system",
+    //     "content":
+    //         "You are Pastor Jacob. Continue the discussion by replying to this, and adding a revelant Bible verse if needed",
+    //   });
+    // }
+    // messages?.forEach((element) {
+    //   dataMessages.add({
+    //     "role": element.isSender ? "user" : "assistant",
+    //     "content": element.text,
+    //   });
+    // });
+    try {
+      Response response = await Dio().post(
+        "https://api.openai.com/v1/chat/completions",
+        data: {
+          "model": "gpt-3.5-turbo",
+          "messages": messages,
+          //"max_tokens": maxTokens,
+        },
+        options: Options(
+          headers: {
+            HttpHeaders.contentTypeHeader: "application/json",
+            HttpHeaders.authorizationHeader: "Bearer $apiKey",
+          },
+        ),
+      );
+      // print("LOG: apicall error response $response");
+      // print(
+      //     "LOG: apicall error response code ${response.statusCode} ${response.statusMessage}");
+      if (response.statusCode == 200) {
+        var generatedText = response.data['choices'][0]['message']['content'];
+        return removeFirstNewline(generatedText);
+      } else {
+        throw Exception(
+            "Failed to generate reply. Status code: ${response.statusCode}");
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print("LOG: apicall error $e");
+      }
+      if (french ?? false) {
+        return "Erreur de génération de réponse. Veuillez réessayer plus tard";
+      }
+      return "Error generating reply. Please try again later";
+    }
+  }
+
   Future<String> generateSummary(Message message, bool? french) async {
     //final discussion = getDiscussion(textsList);
     // try {

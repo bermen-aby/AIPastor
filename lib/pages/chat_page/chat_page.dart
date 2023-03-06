@@ -7,7 +7,6 @@ import 'package:ai_pastor/provider/selection_provider.dart';
 import 'package:ai_pastor/provider/theme_provider.dart';
 import 'package:ai_pastor/services/theme_services.dart';
 import 'package:ai_pastor/utils/translate.dart';
-import 'package:ai_pastor/utils/utils.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:clipboard/clipboard.dart';
@@ -69,6 +68,8 @@ class _ChatPageState extends State<ChatPage> {
   late Chat? chat;
   late SelectionProvider _selectionProvider;
 
+  bool french = false;
+
   MenuItem itemCopy = MenuItem(text: 'Copy', icon: Icons.copy);
   MenuItem itemShare = MenuItem(text: 'Share', icon: Icons.share);
 
@@ -103,6 +104,7 @@ class _ChatPageState extends State<ChatPage> {
     _flutterTts.stop();
     _interstitialAd?.dispose();
     _titleController.dispose();
+    //_selectionProvider.dispose();
     super.dispose();
   }
 
@@ -198,6 +200,13 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   initChatWithContext() async {
+    Locale locale = Localizations.localeOf(context);
+    String languageCode = locale.languageCode;
+
+    if (languageCode == "fr") {
+      french = true;
+    }
+
     widget.chatDetails =
         ChatDetails(title: t(context).newDiscussion, date: DateTime.now());
     chat = Chat()
@@ -212,7 +221,7 @@ class _ChatPageState extends State<ChatPage> {
     if (launchCount % 4 == 0) {
       if (!donationPopUpOnce) {
         donationPopUpOnce = true;
-        Navigator.push(
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) =>
@@ -221,22 +230,18 @@ class _ChatPageState extends State<ChatPage> {
         );
       }
     }
-
-    if (serverData.text != null) {
-      if (serverData.text!.isNotEmpty) {
-        String lastMsg = await LocalServices.getLastServerMsg();
-        if (lastMsg != serverData.text!) {
-          Future.delayed(const Duration(seconds: 5), () {
-            Utils.showServerMessage(
-              context,
-              serverData.title!,
-              serverData.text!,
-              t(context).ok,
-              () async {
-                await LocalServices.setLastServerMsg(serverData.text!);
-                Navigator.of(context).pop();
-              },
-            );
+    if (chat!.prompt.isEmpty) {
+      chat!.prompt.add({
+        "role": "system",
+        "content": french
+            ? "Vous êtes le Pasteur Jacob. Poursuivez la discussion en répondant à ce message et en ajoutant un verset biblique approprié si nécessaire"
+            : "You are Pastor Jacob. Continue the discussion by replying to this, and adding a revelant Bible verse if needed",
+      });
+      for (var element in messages) {
+        if (element.text != t(context).hello) {
+          chat!.prompt.add({
+            "role": element.isSender ? "user" : "assistant",
+            "content": element.text,
           });
         }
       }
@@ -494,7 +499,8 @@ class _ChatPageState extends State<ChatPage> {
                   BounceInDown(
                     child: const CircleAvatar(
                       radius: 25,
-                      backgroundImage: AssetImage("assets/images/pastor.png"),
+                      backgroundImage:
+                          AssetImage("assets/images/pastor_profile.png"),
                     ),
                   ),
                   const SizedBox(width: kDefaultPadding * 0.50),
@@ -539,7 +545,7 @@ class _ChatPageState extends State<ChatPage> {
           : IconButton(
               icon: const Icon(Icons.history),
               onPressed: () {
-                Navigator.push(
+                Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
                     builder: (context) =>
@@ -750,7 +756,7 @@ class _ChatPageState extends State<ChatPage> {
   Future<bool> checkConnection() async {
     connexion = await LocalServices.hasInternet();
     setState(() {});
-    return connexion;
+    return true;
   }
 
   Future<bool> _checkVersion() async {
@@ -803,32 +809,38 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _sendText() async {
-    final message = Message(
-        text: _promptController.text, date: DateTime.now(), isSender: true);
     setState(() {
-      messages.add(message);
-      _promptController.clear();
       _apiProcess = true;
     });
-    bool french = false;
+    String? firstPrompt;
+
     widget.chatDetails ??=
         ChatDetails(title: t(context).newDiscussion, date: DateTime.now());
     widget.chatDetails!
       ..date = DateTime.now()
-      ..lastMessage = message.text;
-    if (messages.length == 2) {
+      ..lastMessage = _promptController.text;
+    if (messages.length == 1) {
       Locale locale = Localizations.localeOf(context);
       String languageCode = locale.languageCode;
-
+      firstPrompt = t(context).systemPrompt;
+      firstPrompt += _promptController.text;
+      //_promptController.text = system;
       if (languageCode == "fr") {
         french = true;
       }
-      widget.chatDetails!.title =
-          await apiServices.generateTitle(message.text, french: french);
+      widget.chatDetails!.title = await apiServices
+          .generateTitle(_promptController.text, french: french);
       if (kDebugMode) {
         print("LOG: Title ${widget.chatDetails?.title}");
       }
     }
+
+    Message message = Message(
+        text: _promptController.text, date: DateTime.now(), isSender: true);
+    setState(() {
+      messages.add(message);
+      _promptController.clear();
+    });
 
     chat!.details.value = widget.chatDetails;
     //chat!.messages.add(message);
@@ -836,15 +848,21 @@ class _ChatPageState extends State<ChatPage> {
         "LOG: chat.details.value.lastMessage ${chat?.details.value?.lastMessage}");
     debugPrint("LOG: chat.details.value.id ${chat?.details.value?.id}");
 
-    chat!.summary += await apiServices.generateSummary(message, french);
+    if (firstPrompt != null) {
+      chat!.prompt.add({"role": "user", "content": firstPrompt});
+    } else {
+      chat!.prompt.add({"role": "user", "content": message.text});
+    }
+
+    //await apiServices.generateSummary(message, french);
     if (kDebugMode) {
-      print("LOG: Summary ${chat?.summary}");
+      print("LOG: Summary ${chat?.prompt}");
     }
     chat = await _isarServices.saveChat(chat!, message);
-    _generatedText = await apiServices.generateReply(message.text,
-        context: chat?.summary, french: french);
+    _generatedText =
+        await apiServices.promptGPTTurbo(chat!.prompt, french: french);
     if (kDebugMode) {
-      print("LOG: Title $_generatedText");
+      print("LOG: response $_generatedText");
     }
     final messageResponse =
         Message(text: _generatedText, date: DateTime.now(), isSender: false);
@@ -866,7 +884,7 @@ class _ChatPageState extends State<ChatPage> {
       print("New title is: ${widget.chatDetails?.title}");
     }
 
-    chat!.summary += await apiServices.generateSummary(messageResponse, french);
+    chat!.prompt.add({"role": "assistant", "content": messageResponse.text});
     chat = await _isarServices.saveChat(chat!, messageResponse);
   }
 

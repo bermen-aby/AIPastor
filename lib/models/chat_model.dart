@@ -8,13 +8,14 @@ part 'chat_model.g.dart';
 @collection
 class Chat {
   Id id = Isar.autoIncrement;
-  String summary;
+  @ignore
+  List<Map<String, String>> prompt = [];
   @Backlink(to: "chat")
   final messages = IsarLinks<Message>();
   @Backlink(to: "chat")
   final details = IsarLink<ChatDetails>();
 
-  Chat({
-    this.summary = '',
-  });
+  // Chat({
+  //   this.summary = [],
+  // });
 }
